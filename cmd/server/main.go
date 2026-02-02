@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"openclaw-go/internal/config"
 	"openclaw-go/internal/memory"
 	"openclaw-go/internal/vector"
+	"openclaw-go/pkg/ai"
 )
 
 // Version info
@@ -47,6 +47,9 @@ func main() {
 	chatManager := chat.NewChatManager(100)
 	
 	var vectorStore vector.VectorStore = vector.NewInMemoryStore(embedder)
+
+	// Initialize AI client
+	initializeAI(cfg)
 
 	// Use port 18888 to avoid conflicts with original OpenClaw
 	port := "18888"
@@ -637,21 +640,47 @@ func buildPrompt(input, contextText string, messages []chat.Message) string {
 	return sb.String()
 }
 
+// Global variable to hold the AI client
+var aiClient ai.Client
+
+func initializeAI(cfg *config.Config) {
+	// Initialize AI client based on configuration
+	if cfg.Zhipu.ApiKey != "" {
+		aiClient = ai.NewZhipuClient(cfg.Zhipu.ApiKey, cfg.Zhipu.BaseURL, cfg.Zhipu.Model)
+		fmt.Println("Using Zhipu AI model:", cfg.Zhipu.Model)
+	} else {
+		fmt.Println("No AI provider configured, using fallback responses")
+	}
+}
+
 func callClaudeCode(prompt string) string {
-	// Try to use Claude Code CLI
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	
-	cmd := exec.CommandContext(ctx, "claude-code", "--print", "--no-stream")
-	cmd.Stdin = strings.NewReader(prompt)
-	
-	output, err := cmd.Output()
-	if err != nil {
-		// Fallback to simple response
-		return generateSimpleResponse(prompt)
+	// Try to use configured AI client
+	if aiClient != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		
+		req := ai.ChatCompletionRequest{
+			Model: "",
+			Messages: []ai.Message{
+				{Role: "user", Content: prompt},
+			},
+			Stream: false,
+		}
+		
+		resp, err := aiClient.ChatCompletion(ctx, req)
+		if err != nil {
+			fmt.Printf("AI client error: %v\n", err)
+			// Fallback to simple response
+			return generateSimpleResponse(prompt)
+		}
+		
+		if len(resp.Choices) > 0 {
+			return strings.TrimSpace(resp.Choices[0].Message.Content)
+		}
 	}
 	
-	return strings.TrimSpace(string(output))
+	// Fallback to simple response
+	return generateSimpleResponse(prompt)
 }
 
 func generateSimpleResponse(prompt string) string {

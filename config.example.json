@@ -58,5 +58,10 @@
     "openai": {
       "apiKey": "YOUR_OPENAI_API_KEY_HERE"
     }
+  },
+  "zhipu": {
+    "apiKey": "YOUR_ZHIPU_API_KEY_HERE",
+    "model": "glm-4",
+    "baseUrl": "https://open.bigmodel.cn/api/paas/v4/"
   }
 }

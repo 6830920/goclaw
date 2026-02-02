@@ -12,6 +12,7 @@ type Config struct {
 	Channels map[string]interface{} `json:"channels,omitempty"`
 	Gateway  GatewayConfig          `json:"gateway,omitempty"`
 	Models   map[string]interface{} `json:"models,omitempty"`
+	Zhipu    ZhipuConfig            `json:"zhipu,omitempty"`
 }
 
 // AgentConfig holds agent-specific configuration
@@ -60,6 +61,13 @@ type SandboxConfig struct {
 	Timeout int      `json:"timeout,omitempty"`
 }
 
+// ZhipuConfig holds Zhipu AI configuration
+type ZhipuConfig struct {
+	ApiKey string `json:"apiKey,omitempty"`
+	Model  string `json:"model,omitempty"` // Default model to use
+	BaseURL string `json:"baseUrl,omitempty"` // Custom base URL if needed
+}
+
 // LoadConfig loads configuration from a JSON file
 func LoadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
@@ -102,5 +110,8 @@ func NewDefaultConfig() *Config {
 			Bind: "127.0.0.1",
 		},
 		Models: make(map[string]interface{}),
+		Zhipu: ZhipuConfig{
+			Model: "glm-4", // Default Zhipu model
+		},
 	}
 }
