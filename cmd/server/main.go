@@ -51,8 +51,8 @@ func main() {
 	// Initialize AI client
 	initializeAI(cfg)
 
-	// Use port 18888 to avoid conflicts with original OpenClaw
-	port := "18888"
+	// Use port 18890 to avoid conflicts
+	port := "18890"
 	fmt.Printf("Starting OpenClaw-Go server on port %s\n", port)
 	
 	// Create static files directory
@@ -426,14 +426,25 @@ func loadConfig() *config.Config {
 	cfg := config.NewDefaultConfig()
 	
 	// Override default port to avoid conflicts with original OpenClaw
-	cfg.Gateway.Port = 18888
+	cfg.Gateway.Port = 18890
 	
-	// Try to load from file
+	// Try to load global config first (~/.openclaw/openclaw.json)
+	globalCfg, err := config.LoadGlobalConfig()
+	if err != nil {
+		fmt.Printf("No global config found: %v\n", err)
+	} else {
+		fmt.Println("Loaded global configuration from ~/.openclaw/openclaw.json")
+		// Merge global config with defaults
+		cfg = config.MergeConfigs(globalCfg, cfg)
+	}
+	
+	// Then try to load local config (config.json), which takes precedence
 	if _, err := os.Stat("config.json"); err == nil {
-		loadedCfg, err := config.LoadConfig("config.json")
+		localCfg, err := config.LoadConfig("config.json")
 		if err == nil {
-			cfg = loadedCfg
-			fmt.Println("Loaded configuration from config.json")
+			fmt.Println("Loaded local configuration from config.json")
+			// Merge local config with global/default
+			cfg = config.MergeConfigs(cfg, localCfg)
 		}
 	}
 	

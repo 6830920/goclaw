@@ -65,12 +65,6 @@ type ZhipuClient struct {
 func NewZhipuClient(apiKey, baseURL, model string) *ZhipuClient {
 	if baseURL == "" {
 		baseURL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-	} else {
-		// Ensure the URL ends with the correct endpoint
-		if baseURL[len(baseURL)-1] != '/' {
-			baseURL += "/"
-		}
-		baseURL += "chat/completions"
 	}
 	
 	if model == "" {
