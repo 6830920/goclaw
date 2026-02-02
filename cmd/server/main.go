@@ -449,27 +449,24 @@ func loadConfig() *config.Config {
 	// Override default port to avoid conflicts with original OpenClaw
 	cfg.Gateway.Port = 18890
 	
-	// First, sync configuration from global to local if needed
-	utils.SyncGlobalConfig("config.json")
+	// Try to load local config (config.json) first
+	if _, err := os.Stat("config.json"); err == nil {
+		localCfg, err := config.LoadConfig("config.json")
+		if err == nil {
+			fmt.Println("Loaded local configuration from config.json")
+			// Use local config
+			cfg = localCfg
+		}
+	}
 	
-	// Try to load global config first (~/.openclaw/openclaw.json)
+	// Then try to load global config (~/.openclaw/openclaw.json), which takes precedence
 	globalCfg, err := config.LoadGlobalConfig()
 	if err != nil {
 		fmt.Printf("No global config found: %v\n", err)
 	} else {
 		fmt.Println("Loaded global configuration from ~/.openclaw/openclaw.json")
-		// Merge global config with defaults
+		// Merge global config with local/default, with global taking precedence
 		cfg = config.MergeConfigs(globalCfg, cfg)
-	}
-	
-	// Then try to load local config (config.json), which takes precedence
-	if _, err := os.Stat("config.json"); err == nil {
-		localCfg, err := config.LoadConfig("config.json")
-		if err == nil {
-			fmt.Println("Loaded local configuration from config.json")
-			// Merge local config with global/default
-			cfg = config.MergeConfigs(cfg, localCfg)
-		}
 	}
 	
 	return cfg

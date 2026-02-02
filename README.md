@@ -74,12 +74,43 @@ cp config.example.json config.json
 
 See [CONFIGURATION.md](CONFIGURATION.md) for detailed setup instructions.
 
-### Zhipu AI Setup
+### One-time Configuration Copy
+
+To copy your existing OpenClaw configuration from `~/.openclaw/openclaw.json` to this project:
+
+```bash
+# Copy existing configuration (one-time operation)
+cp ~/.openclaw/openclaw.json ~/projects/openclaw-go/config.json
+
+# Or use the provided tool:
+./bin/copy-config
+```
+
+### Supported AI Providers
+The configuration supports multiple AI providers:
+- **Zhipu AI**: GLM-4 model support
+- **Minimax**: MiniMax-M2.1 model support  
+- **Qwen**: Qwen Coder and Vision models
+- **Other providers**: Configurable via models.providers
+
+Example configuration:
 ```json
 {
-  "zhipu": {
-    "apiKey": "your_zhipu_api_key",
-    "model": "glm-4"
+  "models": {
+    "providers": {
+      "minimax": {
+        "apiKey": "your_minimax_api_key",
+        "baseUrl": "https://api.minimaxi.com/anthropic"
+      },
+      "qwen-portal": {
+        "apiKey": "your_qwen_api_key",
+        "baseUrl": "https://portal.qwen.ai/v1"
+      },
+      "zhipu": {
+        "apiKey": "your_zhipu_api_key",
+        "model": "glm-4"
+      }
+    }
   }
 }
 ```
