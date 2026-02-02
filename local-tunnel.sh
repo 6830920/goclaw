@@ -27,11 +27,14 @@ check_dependencies() {
         TUNNEL_TOOL="ngrok"
     elif command -v cloudflared &> /dev/null; then
         TUNNEL_TOOL="cloudflared"
+    elif command -v frpc &> /dev/null; then
+        TUNNEL_TOOL="frp"
     else
         echo -e "${YELLOW}⚠️  未检测到隧道工具${NC}"
         echo -e "${BLUE}💡 请先安装其中一个工具:${NC}"
         echo "   ngrok: https://ngrok.com/download"
-        echo "   或者 Cloudflare Tunnel: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/"
+        echo "   Cloudflare Tunnel: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/"
+        echo "   FRP: https://github.com/fatedier/frp/releases"
         echo ""
         echo -e "${GREEN}📝 或者您可以使用在线服务:${NC}"
         echo "   1. Railway: https://railway.app"
@@ -137,6 +140,82 @@ use_cloudflare() {
     wait $CLOUDFLARE_PID $SERVER_PID 2>/dev/null
 }
 
+# 使用 FRP 创建隧道
+use_frp() {
+    echo -e "${BLUE}🔌 使用 FRP 创建隧道...${NC}"
+    
+    if ! command -v frpc &> /dev/null; then
+        echo -e "${RED}❌ frpc 未安装${NC}"
+        return 1
+    fi
+    
+    # 检查配置文件是否存在
+    if [ ! -f "frpc.ini" ]; then
+        echo -e "${YELLOW}⚠️  frpc.ini 配置文件不存在，正在创建示例配置...${NC}"
+        
+        cat > frpc.ini << 'EOF'
+# Goclaw FRP 客户端配置文件
+# 用于将本地 Goclaw 服务通过 FRP 暴露到公网
+
+[common]
+# 请替换为您的 FRP 服务器地址
+server_addr = your-frp-server.com
+server_port = 7000
+
+# 如果服务器启用了 token 验证
+# token = your-token-here
+
+# 日志配置
+log_file = ./frpc.log
+log_level = info
+log_max_days = 3
+
+# Goclaw Web 服务
+[goclaw-web]
+type = http
+local_ip = 127.0.0.1
+local_port = 55789
+# 自定义子域名（如果服务器支持）
+# subdomain = goclaw
+# 或者使用自定义域名
+# custom_domains = your-domain.com
+
+# 如果需要 TCP 端口转发
+[goclaw-tcp]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 55789
+# 远程端口（在FRP服务器上开放的端口）
+# remote_port = 65789
+EOF
+        
+        echo -e "${GREEN}✅ 已创建 frpc.ini 示例配置文件${NC}"
+        echo -e "${YELLOW}💡 请编辑 frpc.ini 文件，填入您的 FRP 服务器信息${NC}"
+        echo "   1. 修改 server_addr 为您的 FRP 服务器地址"
+        echo "   2. 修改 server_port 为您的 FRP 服务器端口"
+        echo "   3. 如需要，填入 token 验证信息"
+        echo ""
+        return 1
+    fi
+    
+    # 启动 FRP 客户端
+    echo -e "${BLUE}🌐 启动 FRP 客户端...${NC}"
+    frpc -c frpc.ini &
+    FRP_PID=$!
+    
+    # 等待启动
+    sleep 3
+    
+    echo -e "${GREEN}✅ FRP 隧道已启动${NC}"
+    echo -e "${BLUE}💡 请检查您的 FRP 服务器配置以获取访问地址${NC}"
+    echo -e "${BLUE}⚡ Goclaw 服务现在可通过 FRP 隧道访问${NC}"
+    
+    # 等待用户终止
+    echo -e "${YELLOW}🏃 按 Ctrl+C 停止服务${NC}"
+    trap 'kill $FRP_PID $SERVER_PID 2>/dev/null; exit' INT TERM
+    wait $FRP_PID $SERVER_PID 2>/dev/null
+}
+
 # 主函数
 main() {
     check_dependencies
@@ -154,9 +233,10 @@ main() {
     echo -e "${BLUE}📋 选择隧道工具:${NC}"
     echo "1) ngrok"
     echo "2) Cloudflare Tunnel"
-    echo "3) 仅启动本地服务"
+    echo "3) FRP (Fast Reverse Proxy)"
+    echo "4) 仅启动本地服务"
     echo ""
-    read -p "请选择 (1-3): " choice
+    read -p "请选择 (1-4): " choice
     
     case $choice in
         1)
@@ -166,6 +246,9 @@ main() {
             use_cloudflare
             ;;
         3)
+            use_frp
+            ;;
+        4)
             echo -e "${GREEN}✅ 服务器已在 http://localhost:55789 运行${NC}"
             echo -e "${YELLOW}🏃 按 Ctrl+C 停止服务${NC}"
             trap 'kill $SERVER_PID 2>/dev/null; exit' INT TERM

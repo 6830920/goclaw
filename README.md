@@ -224,7 +224,23 @@ docker-compose up -d
 # 然后可以选择:
 # 1. 使用 ngrok 创建公共URL
 # 2. 使用 Cloudflare Tunnel
-# 3. 仅本地访问
+# 3. 使用 FRP (Fast Reverse Proxy) - 推荐在中国网络环境使用
+# 4. 仅本地访问
+```
+
+### FRP 配置
+如果使用 FRP，需要先配置 `frpc.ini` 文件：
+```ini
+[common]
+server_addr = your-frp-server.com  # 替换为您的 FRP 服务器地址
+server_port = 7000                 # 替换为您的 FRP 服务器端口
+token = your-token                 # 如果服务器需要验证
+
+[goclaw-web]
+type = http
+local_ip = 127.0.0.1
+local_port = 55789
+subdomain = goclaw                 # 可选：自定义子域名
 ```
 
 ### CI/CD
