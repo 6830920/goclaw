@@ -243,6 +243,12 @@ local_port = 55789
 subdomain = goclaw                 # 可选：自定义子域名
 ```
 
+**注意：** 系统中已预配置了FRP服务器，信息如下：
+- 服务器地址：82.156.152.146
+- 服务器端口：7000
+- 认证Token：wodefrpmima
+- Goclaw服务可通过 TCP 端口 35789 或 HTTP 子域名 `goclaw` 访问
+
 ### CI/CD
 项目集成了 GitHub Actions 自动化流程：
 - 代码提交后自动运行测试
