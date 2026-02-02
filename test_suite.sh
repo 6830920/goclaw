@@ -1,12 +1,12 @@
 #!/bin/bash
 
-echo "OpenClaw-Go Comprehensive Test Suite"
+echo "Goclaw Comprehensive Test Suite"
 echo "==================================="
 
 # Start the server
-echo "Starting OpenClaw-Go server on port 18890..."
+echo "Starting Goclaw server on port 18890..."
 cd ~/projects/openclaw-go
-./bin/openclaw-server > server.log 2>&1 &
+./bin/goclaw-server > server.log 2>&1 &
 SERVER_PID=$!
 sleep 3
 
@@ -101,7 +101,7 @@ kill $SERVER_PID
 rm -f server.log
 
 echo ""
-echo "🎉 All tests passed! OpenClaw-Go is ready for use."
+echo "🎉 All tests passed! Goclaw is ready for use."
 echo ""
 echo "Features verified:"
 echo "- Web UI available at http://localhost:18890"

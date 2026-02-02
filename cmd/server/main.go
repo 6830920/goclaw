@@ -1,4 +1,4 @@
-// Package main provides the OpenClaw-Go server with HTTP API and Web UI
+// Package main provides the Goclaw server with HTTP API and Web UI
 package main
 
 import (
@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"openclaw-go/internal/chat"
-	"openclaw-go/internal/config"
-	"openclaw-go/internal/memory"
-	"openclaw-go/internal/vector"
-	"openclaw-go/pkg/ai"
-	"openclaw-go/pkg/utils"
+	"goclaw/internal/chat"
+	"goclaw/internal/config"
+	"goclaw/internal/memory"
+	"goclaw/internal/vector"
+	"goclaw/pkg/ai"
 )
 
 // Version info
@@ -30,7 +29,7 @@ type APIResponse struct {
 }
 
 func main() {
-	fmt.Printf("OpenClaw-Go Server v%s\n", Version)
+	fmt.Printf("Goclaw Server v%s\n", Version)
 	fmt.Println("======================\n")
 
 	// Load configuration
@@ -74,7 +73,7 @@ func main() {
 
 	// Use port 18890 to avoid conflicts
 	port := "18890"
-	fmt.Printf("Starting OpenClaw-Go server on port %s\n", port)
+	fmt.Printf("Starting Goclaw server on port %s\n", port)
 	
 	// Create static files directory
 	os.MkdirAll("static", 0755)
@@ -88,7 +87,7 @@ func main() {
 	http.HandleFunc("/api/memory/stats", handleMemoryStats(memoryStore))
 	http.HandleFunc("/api/sessions", handleSessions(chatManager))
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(APIResponse{Status: "ok", Message: "OpenClaw-Go is running"})
+		json.NewEncoder(w).Encode(APIResponse{Status: "ok", Message: "Goclaw is running"})
 	})
 	
 	// Static file handlers
@@ -117,7 +116,7 @@ func writeStaticFiles() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenClaw-Go</title>
+    <title>Goclaw</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     <style>
@@ -271,7 +270,7 @@ func writeStaticFiles() {
 </head>
 <body>
     <div class="header">
-        <h1>🤖 OpenClaw-Go</h1>
+        <h1>🤖 Goclaw</h1>
     </div>
     
     <div class="chat-container">
@@ -283,7 +282,7 @@ func writeStaticFiles() {
             <button id="send-button">➤</button>
         </div>
         
-        <p class="info-text">Powered by OpenClaw-Go • Port 18888</p>
+        <p class="info-text">Powered by Goclaw • Port 18888</p>
     </div>
 
     <script>
@@ -295,7 +294,7 @@ func writeStaticFiles() {
         let currentSessionId = 'web_' + new Date().getTime();
         
         // Add welcome message
-        addMessage('assistant', 'Hello! I\'m OpenClaw-Go. How can I help you today?');
+        addMessage('assistant', 'Hello! I\'m Goclaw. How can I help you today?');
         
         // Focus input field
         messageInput.focus();
@@ -394,7 +393,7 @@ func writeStaticFiles() {
 	
 	// Create manifest.json for PWA
 	manifestJSON := `{
-    "name": "OpenClaw-Go",
+    "name": "Goclaw",
     "short_name": "OC-Go",
     "description": "Personal AI Assistant",
     "start_url": "/",
@@ -417,7 +416,7 @@ func writeStaticFiles() {
 	
 	// Create service worker for PWA
 	swJS := `// Simple service worker for caching
-const CACHE_NAME = 'openclaw-go-v1';
+const CACHE_NAME = 'goclaw-v1';
 const urlsToCache = [
   '/',
   '/static/index.html',
@@ -657,7 +656,7 @@ func generateResponse(input, contextText string, chatMgr *chat.ChatManager, sess
 func buildPrompt(input, contextText string, messages []chat.Message) string {
 	var sb strings.Builder
 	
-	sb.WriteString("You are OpenClaw-Go, a personal AI assistant.\n\n")
+	sb.WriteString("You are Goclaw, a personal AI assistant.\n\n")
 	
 	if contextText != "" {
 		sb.WriteString("Context from memory:\n")
@@ -736,12 +735,12 @@ func generateSimpleResponse(prompt string) string {
 	promptLower := strings.ToLower(prompt)
 	
 	if strings.Contains(promptLower, "hello") || strings.Contains(promptLower, "hi") {
-		return "Hello! I'm OpenClaw-Go. How can I help you today?"
+		return "Hello! I'm Goclaw. How can I help you today?"
 	}
 	
 	if strings.Contains(promptLower, "time") {
 		return fmt.Sprintf("The current time is %s", time.Now().Format("3:04 PM"))
 	}
 	
-	return "I understand you're saying: \"" + prompt + "\"\n\nI'm OpenClaw-Go API server running on port 18888."
+	return "I understand you're saying: \"" + prompt + "\"\n\nI'm Goclaw API server running on port 18888."
 }

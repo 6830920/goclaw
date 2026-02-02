@@ -1,4 +1,4 @@
-// Package memory provides memory management for OpenClaw-Go
+// Package memory provides memory management for Goclaw
 // Implements short-term, long-term, and working memory
 package memory
 
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"openclaw-go/internal/vector"
+	"goclaw/internal/vector"
 )
 
 // MemoryType defines the type of memory

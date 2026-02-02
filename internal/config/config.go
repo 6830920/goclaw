@@ -1,4 +1,4 @@
-// Package config handles configuration for OpenClaw-Go
+// Package config handles configuration for Goclaw
 package config
 
 import (

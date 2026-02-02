@@ -1,5 +1,5 @@
 // Simple service worker for caching
-const CACHE_NAME = 'openclaw-go-v1';
+const CACHE_NAME = 'goclaw-v1';
 const urlsToCache = [
   '/',
   '/static/index.html',

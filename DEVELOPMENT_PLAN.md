@@ -1,4 +1,4 @@
-# OpenClaw-Go 开发计划
+# Goclaw 开发计划
 
 ## 阶段一：GitHub代码管理和项目初始化
 

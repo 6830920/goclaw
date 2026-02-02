@@ -1,4 +1,4 @@
-// Package vector provides text embedding and vector operations for OpenClaw-Go
+// Package vector provides text embedding and vector operations for Goclaw
 package vector
 
 import (

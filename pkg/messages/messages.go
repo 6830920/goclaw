@@ -1,4 +1,4 @@
-// Package messages handles message processing for OpenClaw-Go
+// Package messages handles message processing for Goclaw
 package messages
 
 import (

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Testing OpenClaw-Go API endpoints..."
+echo "Testing Goclaw API endpoints..."
 
 echo -e "\n1. Testing health endpoint:"
 curl -s -X GET http://localhost:18888/health | jq .

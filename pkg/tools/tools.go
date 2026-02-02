@@ -1,4 +1,4 @@
-// Package tools implements various utility tools for OpenClaw-Go
+// Package tools implements various utility tools for Goclaw
 // Similar to the tools available in the original OpenClaw
 package tools
 

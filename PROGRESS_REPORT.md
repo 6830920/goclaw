@@ -1,8 +1,8 @@
-# OpenClaw-Go Progress Report
+# Goclaw Progress Report
 
 ## Project Status
 
-We have successfully initiated the OpenClaw-Go project, which is a Go language reimplementation of the original OpenClaw personal AI assistant framework.
+We have successfully initiated the Goclaw project, which is a Go language reimplementation of the original OpenClaw personal AI assistant framework.
 
 ## Completed Work
 

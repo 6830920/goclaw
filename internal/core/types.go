@@ -1,4 +1,4 @@
-// Package core contains the core functionality of OpenClaw-Go
+// Package core contains the core functionality of Goclaw
 package core
 
 import (

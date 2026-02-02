@@ -10,17 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"openclaw-go/internal/chat"
-	"openclaw-go/internal/config"
-	"openclaw-go/internal/memory"
-	"openclaw-go/internal/vector"
+	"goclaw/internal/chat"
+	"goclaw/internal/config"
+	"goclaw/internal/memory"
+	"goclaw/internal/vector"
 )
 
 // Version info
 const Version = "0.1.0"
 
 func main() {
-	fmt.Printf("OpenClaw-Go v%s\n", Version)
+	fmt.Printf("Goclaw v%s\n", Version)
 	fmt.Println("==================\n")
 
 	// Load configuration
@@ -83,7 +83,7 @@ func initEmbedder(cfg *config.Config) vector.Embedder {
 func runCLI(embedder vector.Embedder, memStore *memory.MemoryStore, chatMgr *chat.ChatManager, vectorStore vector.VectorStore, cfg *config.Config) {
 	reader := bufio.NewReader(os.Stdin)
 	
-	fmt.Println("\nOpenClaw-Go CLI")
+	fmt.Println("\nGoclaw CLI")
 	fmt.Println("===============")
 	fmt.Println("Commands:")
 	fmt.Println("  /new           - Start new session")
@@ -237,7 +237,7 @@ func generateResponse(input, contextText string, chatMgr *chat.ChatManager, sess
 func buildPrompt(input, contextText string, messages []chat.Message) string {
 	var sb strings.Builder
 	
-	sb.WriteString("You are OpenClaw-Go, a personal AI assistant.\n\n")
+	sb.WriteString("You are Goclaw, a personal AI assistant.\n\n")
 	
 	if contextText != "" {
 		sb.WriteString("Context from memory:\n")
@@ -280,7 +280,7 @@ func generateSimpleResponse(prompt string) string {
 	promptLower := strings.ToLower(prompt)
 	
 	if strings.Contains(promptLower, "hello") || strings.Contains(promptLower, "hi") {
-		return "Hello! I'm OpenClaw-Go. How can I help you today?"
+		return "Hello! I'm Goclaw. How can I help you today?"
 	}
 	
 	if strings.Contains(promptLower, "time") {

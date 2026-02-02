@@ -1,6 +1,6 @@
-# OpenClaw-Go Project Structure
+# Goclaw Project Structure
 
-This document describes the structure and components of the OpenClaw-Go project, which is a Go reimplementation of the original OpenClaw personal AI assistant framework.
+This document describes the structure and components of the Goclaw project, which is a Go reimplementation of the original OpenClaw personal AI assistant framework.
 
 ## Directory Structure
 
@@ -30,7 +30,7 @@ openclaw-go/
 ## Component Descriptions
 
 ### cmd/openclaw/main.go
-The main entry point for the OpenClaw-Go application. This file sets up the WebSocket server that serves as the control plane, similar to the original OpenClaw gateway. It handles incoming connections and routes them appropriately.
+The main entry point for the Goclaw application. This file sets up the WebSocket server that serves as the control plane, similar to the original OpenClaw gateway. It handles incoming connections and routes them appropriately.
 
 ### internal/core/types.go
 Defines the core types used throughout the application:

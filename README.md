@@ -1,4 +1,4 @@
-# OpenClaw-Go
+# Goclaw
 
 A Go language implementation of the OpenClaw personal AI assistant framework.
 
@@ -56,7 +56,7 @@ cp config.example.json config.json
 # Edit config.json with your API keys
 
 # Run server
-./bin/openclaw-server
+./bin/goclaw-server
 
 # Access Web UI at http://localhost:18889
 ```

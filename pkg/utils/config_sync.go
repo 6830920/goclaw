@@ -1,4 +1,4 @@
-// Package utils provides utility functions for OpenClaw-Go
+// Package utils provides utility functions for Goclaw
 package utils
 
 import (

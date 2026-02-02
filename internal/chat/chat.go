@@ -1,4 +1,4 @@
-// Package chat provides conversation management for OpenClaw-Go
+// Package chat provides conversation management for Goclaw
 package chat
 
 import (

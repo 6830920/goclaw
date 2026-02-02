@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Build script for OpenClaw-Go
+# Build script for Goclaw
 
 set -e  # Exit on any error
 
-echo "OpenClaw-Go Build Script"
+echo "Goclaw Build Script"
 echo "========================"
 
 # Check if Go is installed
@@ -16,8 +16,7 @@ fi
 echo "Go version: $(go version)"
 
 # Set the project directory
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$PROJECT_DIR"
+PROJECT_DIR="$(pwd)"
 
 echo "Project directory: $PROJECT_DIR"
 
@@ -25,18 +24,32 @@ echo "Project directory: $PROJECT_DIR"
 echo "Downloading dependencies..."
 go mod tidy
 
-# Build the project
-echo "Building OpenClaw-Go..."
-go build -o bin/openclaw ./cmd/openclaw
+# Create bin directory
+mkdir -p bin
+
+# Build the CLI application
+echo "Building CLI application..."
+go build -o bin/goclaw ./cmd/openclaw
+
+# Build the server application
+echo "Building server application..."
+go build -o bin/goclaw-server ./cmd/server
 
 echo "Build completed successfully!"
-echo "Binary created at: $PROJECT_DIR/bin/openclaw"
+echo "Binaries created at: $PROJECT_DIR/bin/"
+ls -la $PROJECT_DIR/bin/
 
 # Option to run the built binary
 if [ "$1" == "--run" ]; then
-    echo "Running OpenClaw-Go..."
-    $PROJECT_DIR/bin/openclaw
+    echo "Running Goclaw CLI..."
+    $PROJECT_DIR/bin/goclaw
+fi
+
+if [ "$1" == "--run-server" ]; then
+    echo "Running Goclaw server..."
+    $PROJECT_DIR/bin/goclaw-server
 fi
 
 echo "To run the application manually:"
-echo "  $PROJECT_DIR/bin/openclaw"
+echo "  CLI: $PROJECT_DIR/bin/goclaw"
+echo "  Server: $PROJECT_DIR/bin/goclaw-server"

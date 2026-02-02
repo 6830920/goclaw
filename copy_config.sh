@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# One-time configuration copy script for OpenClaw-Go
+# One-time configuration copy script for Goclaw
 
-echo "OpenClaw-Go One-Time Configuration Copy"
+echo "Goclaw One-Time Configuration Copy"
 echo "======================================"
 
 # Build the config copy tool
@@ -23,7 +23,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "Next steps:"
     echo "1. Review config.json to ensure settings are correct"
-    echo "2. Start the server with: ./bin/openclaw-server"
+    echo "2. Start the server with: ./bin/goclaw-server"
     echo ""
 else
     echo "Configuration copy failed."

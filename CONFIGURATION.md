@@ -1,4 +1,4 @@
-# OpenClaw-Go Configuration Guide
+# Goclaw Configuration Guide
 
 ## Configuration File
 
@@ -50,7 +50,7 @@ cp config.example.json config.json
 # Edit config.json with your API keys
 
 # Start the server
-./bin/openclaw-server
+./bin/goclaw-server
 ```
 
 The server will automatically load `config.json` if it exists.

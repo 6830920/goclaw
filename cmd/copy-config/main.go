@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("OpenClaw-Go Configuration Copy Tool")
+	fmt.Println("Goclaw Configuration Copy Tool")
 	fmt.Println("=================================")
 
 	// Get user home directory

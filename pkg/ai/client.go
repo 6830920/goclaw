@@ -1,4 +1,4 @@
-// Package ai provides AI model interfaces for OpenClaw-Go
+// Package ai provides AI model interfaces for Goclaw
 package ai
 
 import (
