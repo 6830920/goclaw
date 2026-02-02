@@ -1,4 +1,4 @@
-// Package main provides the OpenClaw-Go server with HTTP API
+// Package main provides the OpenClaw-Go server with HTTP API and Web UI
 package main
 
 import (
@@ -52,6 +52,12 @@ func main() {
 	port := "18888"
 	fmt.Printf("Starting OpenClaw-Go server on port %s\n", port)
 	
+	// Create static files directory
+	os.MkdirAll("static", 0755)
+	
+	// Write web UI files
+	writeStaticFiles()
+	
 	// API Routes
 	http.HandleFunc("/api/chat", handleChat(embedder, memoryStore, chatManager, vectorStore, cfg))
 	http.HandleFunc("/api/memory/search", handleMemorySearch(embedder, memoryStore))
@@ -61,25 +67,356 @@ func main() {
 		json.NewEncoder(w).Encode(APIResponse{Status: "ok", Message: "OpenClaw-Go is running"})
 	})
 	
+	// Static file handlers
+	fs := http.FileServer(http.Dir("./static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/index.html", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(APIResponse{
-			Status:  "ok",
-			Message: "OpenClaw-Go API Server v" + Version,
-			Data: map[string]interface{}{
-				"endpoints": []string{
-					"/api/chat",
-					"/api/memory/search",
-					"/api/memory/stats",
-					"/api/sessions",
-					"/health",
-				},
-				"port": port,
-			},
-		})
+		// Serve index.html for root path to support SPA
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, "./static/index.html")
+		} else {
+			http.ServeFile(w, r, "./static/index.html")
+		}
 	})
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+// writeStaticFiles creates the necessary static files for the web UI
+func writeStaticFiles() {
+	// Create index.html
+	indexHTML := `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw-Go</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            overflow: hidden;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: #007AFF;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .assistant-message {
+            align-self: flex-start;
+            background-color: #f0f2f5;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 1rem 0;
+            gap: 0.5rem;
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #message-input:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+        }
+        
+        #send-button {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: #0056cc;
+        }
+        
+        #send-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            font-style: italic;
+            display: none;
+        }
+        
+        .info-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .chat-container {
+                padding: 0.5rem;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 OpenClaw-Go</h1>
+    </div>
+    
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="typing-indicator" id="typing-indicator">Assistant is typing...</div>
+        
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+            <button id="send-button">➤</button>
+        </div>
+        
+        <p class="info-text">Powered by OpenClaw-Go • Port 18888</p>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        
+        let currentSessionId = 'web_' + new Date().getTime();
+        
+        // Add welcome message
+        addMessage('assistant', 'Hello! I\'m OpenClaw-Go. How can I help you today?');
+        
+        // Focus input field
+        messageInput.focus();
+        
+        // Send message on button click
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Send message on Enter key (but allow Shift+Enter for new line)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to UI
+            addMessage('user', message);
+            messageInput.value = '';
+            
+            // Show typing indicator
+            typingIndicator.style.display = 'block';
+            scrollToBottom();
+            
+            try {
+                // Send message to API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        sessionId: currentSessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    // Add assistant response to UI
+                    addMessage('assistant', data.data.response);
+                } else {
+                    addMessage('assistant', 'Sorry, I encountered an error processing your request.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('assistant', 'Sorry, I\'m having trouble connecting to the server.');
+            } finally {
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+            }
+        }
+        
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender + '-message');
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            
+            scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Service Worker registration for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>`
+
+	staticDir := "static"
+	os.MkdirAll(staticDir, 0755)
+	
+	// Write index.html
+	err := os.WriteFile(staticDir+"/index.html", []byte(indexHTML), 0644)
+	if err != nil {
+		log.Printf("Error writing index.html: %v", err)
+	}
+	
+	// Create manifest.json for PWA
+	manifestJSON := `{
+    "name": "OpenClaw-Go",
+    "short_name": "OC-Go",
+    "description": "Personal AI Assistant",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f5f7fb",
+    "theme_color": "#6a11cb",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        }
+    ]
+}`
+	
+	err = os.WriteFile(staticDir+"/manifest.json", []byte(manifestJSON), 0644)
+	if err != nil {
+		log.Printf("Error writing manifest.json: %v", err)
+	}
+	
+	// Create service worker for PWA
+	swJS := `// Simple service worker for caching
+const CACHE_NAME = 'openclaw-go-v1';
+const urlsToCache = [
+  '/',
+  '/static/index.html',
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+});`
+
+	err = os.WriteFile(staticDir+"/sw.js", []byte(swJS), 0644)
+	if err != nil {
+		log.Printf("Error writing sw.js: %v", err)
+	}
 }
 
 func loadConfig() *config.Config {
