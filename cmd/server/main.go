@@ -37,7 +37,19 @@ func main() {
 	cfg := loadConfig()
 
 	// Initialize components
-	embedder := initEmbedder(cfg)
+	var embedder vector.Embedder
+	// Check if any AI provider is configured
+	hasAIProvider := cfg.Zhipu.ApiKey != "" || 
+		(cfg.Models["providers"] != nil && len(cfg.Models["providers"].(map[string]interface{})) > 0)
+	
+	if hasAIProvider {
+		// AI provider is configured, skip Ollama embedder
+		fmt.Println("AI provider configured - skipping Ollama embedder initialization")
+		embedder = nil
+	} else {
+		// Only try to initialize Ollama embedder if no other AI provider is configured
+		embedder = initEmbedder(cfg)
+	}
 	
 	memoryStore := memory.NewMemoryStore(memory.MemoryConfig{
 		ShortTermMax:   50,
@@ -47,7 +59,15 @@ func main() {
 	
 	chatManager := chat.NewChatManager(100)
 	
-	var vectorStore vector.VectorStore = vector.NewInMemoryStore(embedder)
+	var vectorStore vector.VectorStore
+	if embedder != nil {
+		vectorStore = vector.NewInMemoryStore(embedder)
+		fmt.Println("Vector store initialized with embedder")
+	} else {
+		// Create a minimal vector store without embedding capabilities
+		vectorStore = vector.NewInMemoryStore(nil)
+		fmt.Println("Vector store initialized without embedder (limited functionality)")
+	}
 
 	// Initialize AI client
 	initializeAI(cfg)
@@ -456,6 +476,12 @@ func loadConfig() *config.Config {
 }
 
 func initEmbedder(cfg *config.Config) vector.Embedder {
+	// Only check for Ollama if no Zhipu AI is configured
+	if cfg.Zhipu.ApiKey != "" {
+		fmt.Println("Zhipu AI configured - skipping Ollama embedder initialization")
+		return nil
+	}
+	
 	// Check if Ollama is available
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -663,6 +689,16 @@ func initializeAI(cfg *config.Config) {
 	if cfg.Zhipu.ApiKey != "" {
 		aiClient = ai.NewZhipuClient(cfg.Zhipu.ApiKey, cfg.Zhipu.BaseURL, cfg.Zhipu.Model)
 		fmt.Println("Using Zhipu AI model:", cfg.Zhipu.Model)
+	} else if cfg.Models["providers"] != nil {
+		// Check for other providers like Minimax or Qwen
+		providers := cfg.Models["providers"].(map[string]interface{})
+		if len(providers) > 0 {
+			// For now, we'll just detect that a provider exists
+			fmt.Println("AI provider configured (Minimax/Qwen or other)")
+			// In the future, we can add specific implementations for these providers
+		} else {
+			fmt.Println("No AI provider configured, using fallback responses")
+		}
 	} else {
 		fmt.Println("No AI provider configured, using fallback responses")
 	}
