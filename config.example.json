@@ -41,7 +41,7 @@
     }
   },
   "gateway": {
-    "port": 18789,
+    "port": 18888,
     "bind": "127.0.0.1",
     "tailscale": {
       "mode": "off",

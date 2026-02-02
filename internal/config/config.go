@@ -98,7 +98,7 @@ func NewDefaultConfig() *Config {
 		},
 		Channels: make(map[string]interface{}),
 		Gateway: GatewayConfig{
-			Port: 18789,
+			Port: 18888,
 			Bind: "127.0.0.1",
 		},
 		Models: make(map[string]interface{}),
