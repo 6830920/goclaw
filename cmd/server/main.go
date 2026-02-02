@@ -71,8 +71,8 @@ func main() {
 	// Initialize AI client
 	initializeAI(cfg)
 
-	// Use port 18890 to avoid conflicts
-	port := "18891"
+	// Use port 55789 based on OpenClaw's port scheme (55xxx replacing 18xxx)
+	port := "55789"
 	fmt.Printf("Starting Goclaw server on port %s\n", port)
 	
 	// Create static files directory
@@ -112,7 +112,7 @@ func main() {
 func writeStaticFiles() {
 	// Create index.html
 	indexHTML := `<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -275,14 +275,14 @@ func writeStaticFiles() {
     
     <div class="chat-container">
         <div class="messages" id="messages"></div>
-        <div class="typing-indicator" id="typing-indicator">Assistant is typing...</div>
+        <div class="typing-indicator" id="typing-indicator">AI正在思考...</div>
         
         <div class="input-container">
-            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+            <input type="text" id="message-input" placeholder="输入您的消息..." autocomplete="off">
             <button id="send-button">➤</button>
         </div>
         
-        <p class="info-text">Powered by Goclaw • Port 18888</p>
+        <p class="info-text">由Goclaw驱动 • 端口 55789</p>
     </div>
 
     <script>
@@ -294,7 +294,7 @@ func writeStaticFiles() {
         let currentSessionId = 'web_' + new Date().getTime();
         
         // Add welcome message
-        addMessage('assistant', 'Hello! I\'m Goclaw. How can I help you today?');
+        addMessage('assistant', '您好！我是Goclaw。今天我能为您做些什么？');
         
         // Focus input field
         messageInput.focus();
@@ -341,11 +341,11 @@ func writeStaticFiles() {
                     // Add assistant response to UI
                     addMessage('assistant', data.data.response);
                 } else {
-                    addMessage('assistant', 'Sorry, I encountered an error processing your request.');
+                    addMessage('assistant', '抱歉，处理您的请求时遇到错误。');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                addMessage('assistant', 'Sorry, I\'m having trouble connecting to the server.');
+                addMessage('assistant', '抱歉，我无法连接到服务器。');
             } finally {
                 // Hide typing indicator
                 typingIndicator.style.display = 'none';
@@ -656,7 +656,8 @@ func generateResponse(input, contextText string, chatMgr *chat.ChatManager, sess
 func buildPrompt(input, contextText string, messages []chat.Message) string {
 	var sb strings.Builder
 	
-	sb.WriteString("You are Goclaw, a personal AI assistant.\n\n")
+	// Set the assistant role without overly prescriptive instructions
+	sb.WriteString("You are Goclaw, a personal AI assistant. Respond naturally and helpfully to the user's requests.\n\n")
 	
 	if contextText != "" {
 		sb.WriteString("Context from memory:\n")
@@ -664,15 +665,21 @@ func buildPrompt(input, contextText string, messages []chat.Message) string {
 		sb.WriteString("\n\n")
 	}
 	
-	sb.WriteString("Conversation:\n")
-	for _, msg := range messages {
-		if msg.Role == "system" {
-			continue
+	// Include conversation history if available
+	if len(messages) > 0 {
+		sb.WriteString("Previous conversation:\n")
+		for _, msg := range messages {
+			if msg.Role == "system" {
+				continue
+			}
+			sb.WriteString(fmt.Sprintf("%s: %s\n", msg.Role, msg.Content))
 		}
-		sb.WriteString(fmt.Sprintf("%s: %s\n", msg.Role, msg.Content))
+		sb.WriteString("\n")
 	}
 	
-	sb.WriteString("\nProvide a helpful, concise response.\n")
+	// Add the current user input as the final request
+	sb.WriteString(fmt.Sprintf("User: %s\n\n", input))
+	sb.WriteString("Please respond naturally and helpfully to the user's message.\n")
 	
 	return sb.String()
 }
@@ -723,16 +730,11 @@ func initializeAI(cfg *config.Config) {
 										modelStr := fmt.Sprintf("%v", modelID)
 										
 										// Choose the right client based on API type
-										if apiType == "anthropic-messages" {
-											// For Minimax which uses Anthropic API
-											client := ai.NewAnthropicCompatibleClient(apiKey, baseURL, modelStr)
-											multiClient.AddProvider(providerName, client)
-											fmt.Printf("Using %s AI model (%s): %s\n", providerName, apiType, modelStr)
-										} else if apiType == "openai-completions" {
-											// For Qwen which uses OpenAI-compatible API
+										if apiType == "anthropic-messages" || apiType == "openai-completions" {
+											// For both Minimax and Qwen which use OpenAI-compatible API
 											client := ai.NewOpenAICompatibleClient(apiKey, baseURL, modelStr)
 											multiClient.AddProvider(providerName, client)
-											fmt.Printf("Using %s AI model (%s): %s\n", providerName, apiType, modelStr)
+											fmt.Printf("Using %s AI model (%s): %s at %s\n", providerName, apiType, modelStr, baseURL)
 										}
 										
 										break // Just use the first model for now

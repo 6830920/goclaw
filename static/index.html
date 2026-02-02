@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -162,14 +162,14 @@
     
     <div class="chat-container">
         <div class="messages" id="messages"></div>
-        <div class="typing-indicator" id="typing-indicator">Assistant is typing...</div>
+        <div class="typing-indicator" id="typing-indicator">AI正在思考...</div>
         
         <div class="input-container">
-            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+            <input type="text" id="message-input" placeholder="输入您的消息..." autocomplete="off">
             <button id="send-button">➤</button>
         </div>
         
-        <p class="info-text">Powered by Goclaw • Port 18888</p>
+        <p class="info-text">由Goclaw驱动 • 端口 55789</p>
     </div>
 
     <script>
@@ -181,7 +181,7 @@
         let currentSessionId = 'web_' + new Date().getTime();
         
         // Add welcome message
-        addMessage('assistant', 'Hello! I\'m Goclaw. How can I help you today?');
+        addMessage('assistant', '您好！我是Goclaw。今天我能为您做些什么？');
         
         // Focus input field
         messageInput.focus();
@@ -228,11 +228,11 @@
                     // Add assistant response to UI
                     addMessage('assistant', data.data.response);
                 } else {
-                    addMessage('assistant', 'Sorry, I encountered an error processing your request.');
+                    addMessage('assistant', '抱歉，处理您的请求时遇到错误。');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                addMessage('assistant', 'Sorry, I\'m having trouble connecting to the server.');
+                addMessage('assistant', '抱歉，我无法连接到服务器。');
             } finally {
                 // Hide typing indicator
                 typingIndicator.style.display = 'none';
