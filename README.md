@@ -2,88 +2,113 @@
 
 A Go language implementation of the OpenClaw personal AI assistant framework.
 
+## 🎯 Status: Core Features Working!
+
+```
+OpenClaw-Go v0.1.0
+==================
+
+You: /help
+Assistant: 
+Commands:
+  /new           - Start new session
+  /quit          - Exit
+  /remember <x>  - Save to memory
+  /recall <x>    - Search memory
+  /stats         - Show memory stats
+  /help          - Show this help
+```
+
 ## Overview
 
-This is a Go reimplementation of the original OpenClaw (https://github.com/openclaw/openclaw) project, which is written in Node.js. OpenClaw is a personal AI assistant that runs on your own devices and integrates with various communication channels like WhatsApp, Telegram, Slack, Discord, etc.
+This is a Go reimplementation of the original OpenClaw (https://github.com/openclaw/openclaw) project. It provides a personal AI assistant with:
 
-## Goals
+- **Memory System**: Short-term, long-term, and working memory with semantic search
+- **Vector Embeddings**: Text embedding via local Ollama server
+- **Chat Sessions**: Multi-session conversation management
+- **CLI Interface**: Interactive command-line interface
 
-- Recreate the core functionality of OpenClaw in Go
-- Maintain compatibility with the original concepts and architecture
-- Provide similar multi-channel support (WhatsApp, Telegram, Slack, Discord, etc.)
-- Implement agent session management
-- Support for tools and automation
-- Cross-platform compatibility
-- Leverage Go's performance and concurrency features
+## Features Implemented
 
-## Architecture
+| Feature | Status |
+|---------|--------|
+| Vector Embedding (Ollama) | ✅ Working |
+| Vector Storage & Search | ✅ Working |
+| Short-term Memory | ✅ Working |
+| Long-term Memory | ✅ Working |
+| Working Memory | ✅ Working |
+| Chat Sessions | ✅ Working |
+| CLI Interface | ✅ Working |
+| Claude Code Integration | ⚠️ Fallback mode |
 
-The Go version implements:
+## Quick Start
 
-1. **Core Gateway** - WebSocket-based control plane for sessions, channels, tools, and events
-2. **Channel Integration** - Support for various messaging platforms (WhatsApp, Telegram, Discord, etc.)
-3. **Agent System** - Session-based AI assistant with tool access
-4. **Tool Framework** - Built-in tools like browser control, file operations, etc.
-5. **Configuration Management** - Flexible configuration system
+```bash
+# Build
+cd ~/projects/openclaw-go
+./build.sh
 
-## Current Progress
+# Run
+./bin/openclaw
 
-- ✅ Basic project structure created
-- ✅ Core types and interfaces defined
-- ✅ Configuration management system implemented
-- ✅ Tool implementations (file operations, command execution)
-- ✅ Message and session management system
-- ✅ WebSocket server foundation
-- ⏳ Dependency resolution and building (in progress)
-- ⏳ Channel integrations (planned)
-- ⏳ AI agent system (planned)
+# In another terminal, test memory
+# (requires Ollama running with nomic-embed-text model)
+```
 
 ## Project Structure
 
-- `cmd/` - Main application entry points
-- `internal/` - Internal packages not meant for external use
-- `pkg/` - Public packages that can be imported by other projects
-- `docs/` - Documentation files
-
-## Installation
-
-First, ensure you have Go 1.19 or later installed:
-
-```bash
-go version
+```
+openclaw-go/
+├── cmd/openclaw/           # Main application & CLI
+├── internal/
+│   ├── chat/              # Chat session management
+│   ├── config/            # Configuration system
+│   ├── core/              # Core types
+│   ├── memory/            # Memory management
+│   │   ├── buffer.go      # Short-term memory
+│   │   ├── memory.go      # Main memory interface
+│   │   ├── vector_memory.go # Long-term memory
+│   │   └── working_memory.go # Working memory
+│   └── vector/            # Vector operations
+│       ├── embedding.go   # Ollama embedding client
+│       └── store.go       # Vector storage
+├── pkg/                   # Reusable packages
+├── docs/                  # Documentation
+├── bin/                   # Compiled binaries
+└── config.example.json   # Example config
 ```
 
-Then clone and build the project:
+## CLI Commands
 
-```bash
-cd ~/projects/openclaw-go
-go mod tidy
-go build -o bin/openclaw ./cmd/openclaw
-```
-
-Or use the provided build script:
-
-```bash
-./build.sh
-```
-
-## Usage
-
-To run the gateway server:
-
-```bash
-./bin/openclaw
-```
-
-The server will start on port 18789 by default (following OpenClaw convention).
+- `/new` - Start new session
+- `/quit` - Exit
+- `/remember <text>` - Save to memory
+- `/recall <query>` - Search memory
+- `/stats` - Show memory statistics
+- `/help` - Show help
 
 ## Configuration
 
-An example configuration file is provided at `config.example.json`. Copy this to `config.json` and customize it with your API keys and settings.
+Copy `config.example.json` to `config.json` and configure:
 
-## Contributing
+```json
+{
+  "agent": {
+    "model": "anthropic/claude-opus-4-5"
+  }
+}
+```
 
-Contributions are welcome! Please see the project structure documentation in `docs/project_structure.md` for details on how to extend the codebase.
+## Requirements
+
+- Go 1.19+
+- Ollama (optional, for embeddings)
+- Claude Code CLI (optional, for AI responses)
+
+## Documentation
+
+- [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) - Full development roadmap
+- [docs/project_structure.md](docs/project_structure.md) - Architecture details
 
 ## License
 
