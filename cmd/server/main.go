@@ -1,8 +1,9 @@
-// Package main provides the OpenClaw-Go server with WebSocket gateway
+// Package main provides the OpenClaw-Go server with HTTP API
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,8 +11,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/gorilla/websocket"
 
 	"openclaw-go/internal/chat"
 	"openclaw-go/internal/config"
@@ -22,12 +21,11 @@ import (
 // Version info
 const Version = "0.1.0"
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow connections from any origin during development
-		// In production, restrict this to specific origins
-		return true
-	},
+// API Response types
+type APIResponse struct {
+	Status  string      `json:"status"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 func main() {
@@ -50,17 +48,35 @@ func main() {
 	
 	var vectorStore vector.VectorStore = vector.NewInMemoryStore(embedder)
 
-	// Use a different port to avoid conflicts with original OpenClaw
-	port := "18888" // Changed from default 18789 to avoid conflicts
+	// Use port 18888 to avoid conflicts with original OpenClaw
+	port := "18888"
 	fmt.Printf("Starting OpenClaw-Go server on port %s\n", port)
 	
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		handleWebSocket(w, r, embedder, memoryStore, chatManager, vectorStore, cfg)
+	// API Routes
+	http.HandleFunc("/api/chat", handleChat(embedder, memoryStore, chatManager, vectorStore, cfg))
+	http.HandleFunc("/api/memory/search", handleMemorySearch(embedder, memoryStore))
+	http.HandleFunc("/api/memory/stats", handleMemoryStats(memoryStore))
+	http.HandleFunc("/api/sessions", handleSessions(chatManager))
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(APIResponse{Status: "ok", Message: "OpenClaw-Go is running"})
 	})
 	
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "OpenClaw-Go Server v%s\n", Version)
-		fmt.Fprintf(w, "WebSocket endpoint available at /ws\n")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(APIResponse{
+			Status:  "ok",
+			Message: "OpenClaw-Go API Server v" + Version,
+			Data: map[string]interface{}{
+				"endpoints": []string{
+					"/api/chat",
+					"/api/memory/search",
+					"/api/memory/stats",
+					"/api/sessions",
+					"/health",
+				},
+				"port": port,
+			},
+		})
 	})
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
@@ -70,7 +86,7 @@ func loadConfig() *config.Config {
 	cfg := config.NewDefaultConfig()
 	
 	// Override default port to avoid conflicts with original OpenClaw
-	cfg.Gateway.Port = 18790
+	cfg.Gateway.Port = 18888
 	
 	// Try to load from file
 	if _, err := os.Stat("config.json"); err == nil {
@@ -106,60 +122,144 @@ func initEmbedder(cfg *config.Config) vector.Embedder {
 	return nil
 }
 
-func handleWebSocket(w http.ResponseWriter, r *http.Request, embedder vector.Embedder, memStore *memory.MemoryStore, chatMgr *chat.ChatManager, vectorStore vector.VectorStore, cfg *config.Config) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Printf("WebSocket upgrade error: %v", err)
-		return
-	}
-	defer conn.Close()
-	
-	sessionID := fmt.Sprintf("ws_session_%d", time.Now().Unix())
-	chatMgr.CreateSession(sessionID, cfg.Agent.Model)
-	
-	fmt.Printf("New WebSocket connection established: %s\n", sessionID)
-	
-	for {
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("WebSocket read error: %v", err)
-			break
+func handleChat(embedder vector.Embedder, memStore *memory.MemoryStore, chatMgr *chat.ChatManager, vectorStore vector.VectorStore, cfg *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req struct {
+			Message    string `json:"message"`
+			SessionID  string `json:"sessionId,omitempty"`
 		}
 		
-		log.Printf("Received message from %s: %s", sessionID, string(message))
-		
-		// Parse the message - expect JSON format with action and content
-		input := string(message)
-		
-		// Add to chat session
-		chatMgr.AddMessage(sessionID, "user", input)
-		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		sessionID := req.SessionID
+		if sessionID == "" {
+			sessionID = fmt.Sprintf("api_session_%d", time.Now().Unix())
+			chatMgr.CreateSession(sessionID, cfg.Agent.Model)
+		}
+
+		// Add user message
+		chatMgr.AddMessage(sessionID, "user", req.Message)
+
 		// Get context from memory
 		var contextText string
 		if embedder != nil {
 			ctx := context.Background()
-			embedding, _ := embedder.Embed(ctx, input)
-			contextText, _ = memStore.GetContext(ctx, input, embedding, 500)
+			embedding, _ := embedder.Embed(ctx, req.Message)
+			contextText, _ = memStore.GetContext(ctx, req.Message, embedding, 500)
 		}
-		
+
 		// Generate response
-		response := generateResponse(input, contextText, chatMgr, sessionID)
-		
-		// Add to chat session
+		response := generateResponse(req.Message, contextText, chatMgr, sessionID)
+
+		// Add assistant message
 		chatMgr.AddMessage(sessionID, "assistant", response)
-		
+
 		// Add to short-term memory
-		memStore.AddShortTerm(input, map[string]interface{}{
+		memStore.AddShortTerm(req.Message, map[string]interface{}{
 			"session": sessionID,
-			"source":  "websocket",
+			"source":  "api",
 		})
-		
-		// Send response back through WebSocket
-		err = conn.WriteMessage(messageType, []byte(response))
-		if err != nil {
-			log.Printf("WebSocket write error: %v", err)
-			break
+
+		// Get updated messages
+		messages, _ := chatMgr.GetMessages(sessionID)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(APIResponse{
+			Status: "ok",
+			Data: map[string]interface{}{
+				"sessionId": sessionID,
+				"response":  response,
+				"messages":  messages,
+			},
+		})
+	}
+}
+
+func handleMemorySearch(embedder vector.Embedder, memStore *memory.MemoryStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
 		}
+
+		var req struct {
+			Query string `json:"query"`
+			Limit int    `json:"limit,omitempty"`
+		}
+		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if embedder == nil {
+			http.Error(w, "No embedder available", http.StatusServiceUnavailable)
+			return
+		}
+
+		ctx := context.Background()
+		embedding, err := embedder.Embed(ctx, req.Query)
+		if err != nil {
+			http.Error(w, "Failed to generate embedding", http.StatusInternalServerError)
+			return
+		}
+
+		limit := req.Limit
+		if limit <= 0 {
+			limit = 5
+		}
+
+		results, err := memStore.Search(ctx, req.Query, embedding, limit)
+		if err != nil {
+			http.Error(w, "Search failed", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(APIResponse{
+			Status: "ok",
+			Data:   results,
+		})
+	}
+}
+
+func handleMemoryStats(memStore *memory.MemoryStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		stats := memStore.Stats()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(APIResponse{
+			Status: "ok",
+			Data:   stats,
+		})
+	}
+}
+
+func handleSessions(chatMgr *chat.ChatManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		sessions := chatMgr.ListSessions()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(APIResponse{
+			Status: "ok",
+			Data: map[string]interface{}{
+				"sessions":     sessions,
+				"sessionCount": len(sessions),
+			},
+		})
 	}
 }
 
@@ -222,12 +322,12 @@ func generateSimpleResponse(prompt string) string {
 	promptLower := strings.ToLower(prompt)
 	
 	if strings.Contains(promptLower, "hello") || strings.Contains(promptLower, "hi") {
-		return "Hello! I'm OpenClaw-Go Server. How can I help you today?"
+		return "Hello! I'm OpenClaw-Go. How can I help you today?"
 	}
 	
 	if strings.Contains(promptLower, "time") {
 		return fmt.Sprintf("The current time is %s", time.Now().Format("3:04 PM"))
 	}
 	
-	return "I understand you're saying: \"" + prompt + "\"\n\nI'm OpenClaw-Go Server with WebSocket support running on port 18790."
+	return "I understand you're saying: \"" + prompt + "\"\n\nI'm OpenClaw-Go API server running on port 18888."
 }
