@@ -1,0 +1,46 @@
+func callClaudeCode(prompt string) string {
+	// Try to use configured AI client
+	if aiClient != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Increase timeout
+		defer cancel()
+		
+		// Use the primary model from the configuration - based on the agents defaults in config
+		// According to config, the primary model should be qwen-portal/coder-model, but we'll try both
+		req := ai.ChatCompletionRequest{
+			Model: "MiniMax-M2.1", // Use the configured model - try Minimax first since it's loaded
+			Messages: []ai.Message{
+				{Role: "user", Content: prompt},
+			},
+			Stream: false,
+		}
+		
+		resp, err := aiClient.ChatCompletion(ctx, req)
+		if err != nil {
+			fmt.Printf("AI client error for MiniMax-M2.1: %v\n", err)
+			// Try the other model as fallback
+			req.Model = "coder-model"
+			resp, err = aiClient.ChatCompletion(ctx, req)
+			if err != nil {
+				fmt.Printf("AI client fallback error for coder-model: %v\n", err)
+				// Still try to get a response from any available provider without specific model
+				req.Model = ""
+				resp, err = aiClient.ChatCompletion(ctx, req)
+				if err != nil {
+					fmt.Printf("AI client generic error: %v\n", err)
+					// Fallback to simple response
+					return generateSimpleResponse(prompt)
+				}
+			}
+		}
+		
+		if resp != nil && len(resp.Choices) > 0 {
+			content := strings.TrimSpace(resp.Choices[0].Message.Content)
+			if content != "" {
+				return content
+			}
+		}
+	}
+	
+	// Fallback to simple response
+	return generateSimpleResponse(prompt)
+}

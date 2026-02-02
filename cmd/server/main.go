@@ -72,7 +72,7 @@ func main() {
 	initializeAI(cfg)
 
 	// Use port 18890 to avoid conflicts
-	port := "18890"
+	port := "18891"
 	fmt.Printf("Starting Goclaw server on port %s\n", port)
 	
 	// Create static files directory
@@ -682,32 +682,89 @@ var aiClient ai.Client
 
 func initializeAI(cfg *config.Config) {
 	// Initialize AI client based on configuration
+	multiClient := ai.NewMultiProviderClient()
+	
+	// Initialize Zhipu AI if configured
 	if cfg.Zhipu.ApiKey != "" {
-		aiClient = ai.NewZhipuClient(cfg.Zhipu.ApiKey, cfg.Zhipu.BaseURL, cfg.Zhipu.Model)
+		zhipuClient := ai.NewZhipuClient(cfg.Zhipu.ApiKey, cfg.Zhipu.BaseURL, cfg.Zhipu.Model)
+		multiClient.AddProvider("zhipu", zhipuClient)
 		fmt.Println("Using Zhipu AI model:", cfg.Zhipu.Model)
-	} else if cfg.Models["providers"] != nil {
-		// Check for other providers like Minimax or Qwen
-		providers := cfg.Models["providers"].(map[string]interface{})
-		if len(providers) > 0 {
-			// For now, we'll just detect that a provider exists
-			fmt.Println("AI provider configured (Minimax/Qwen or other)")
-			// In the future, we can add specific implementations for these providers
-		} else {
-			fmt.Println("No AI provider configured, using fallback responses")
+	}
+	
+	// Initialize other providers like Minimax or Qwen if configured
+	if providersRaw, exists := cfg.Models["providers"]; exists {
+		if providers, ok := providersRaw.(map[string]interface{}); ok {
+			for providerName, providerConfig := range providers {
+				if providerConfigMap, ok := providerConfig.(map[string]interface{}); ok {
+					// Extract API key
+					apiKey := ""
+					if apiKeyVal, hasKey := providerConfigMap["apiKey"]; hasKey {
+						apiKey = fmt.Sprintf("%v", apiKeyVal)
+					}
+					
+					// Extract base URL
+					baseURL := ""
+					if urlVal, hasURL := providerConfigMap["baseUrl"]; hasURL {
+						baseURL = fmt.Sprintf("%v", urlVal)
+					}
+					
+					// Extract API type to determine the right client
+					apiType := ""
+					if apiVal, hasApi := providerConfigMap["api"]; hasApi {
+						apiType = fmt.Sprintf("%v", apiVal)
+					}
+					
+					// Extract models information
+					if models, hasModels := providerConfigMap["models"]; hasModels {
+						if modelsSlice, ok := models.([]interface{}); ok && len(modelsSlice) > 0 {
+							for _, modelItem := range modelsSlice {
+								if modelMap, ok := modelItem.(map[string]interface{}); ok {
+									if modelID, exists := modelMap["id"]; exists {
+										modelStr := fmt.Sprintf("%v", modelID)
+										
+										// Choose the right client based on API type
+										if apiType == "anthropic-messages" {
+											// For Minimax which uses Anthropic API
+											client := ai.NewAnthropicCompatibleClient(apiKey, baseURL, modelStr)
+											multiClient.AddProvider(providerName, client)
+											fmt.Printf("Using %s AI model (%s): %s\n", providerName, apiType, modelStr)
+										} else if apiType == "openai-completions" {
+											// For Qwen which uses OpenAI-compatible API
+											client := ai.NewOpenAICompatibleClient(apiKey, baseURL, modelStr)
+											multiClient.AddProvider(providerName, client)
+											fmt.Printf("Using %s AI model (%s): %s\n", providerName, apiType, modelStr)
+										}
+										
+										break // Just use the first model for now
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
+	}
+	
+	// Only set global aiClient if we have at least one provider
+	if len(multiClient.Providers) > 0 {
+		aiClient = multiClient
+		fmt.Println("AI providers initialized successfully")
 	} else {
-		fmt.Println("No AI provider configured, using fallback responses")
+		fmt.Println("No AI providers configured, using fallback responses")
 	}
 }
 
 func callClaudeCode(prompt string) string {
 	// Try to use configured AI client
 	if aiClient != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Increase timeout
 		defer cancel()
 		
+		// Use the primary model from the configuration - based on the agents defaults in config
+		// According to config, the primary model should be qwen-portal/coder-model, but we'll try both
 		req := ai.ChatCompletionRequest{
-			Model: "",
+			Model: "MiniMax-M2.1", // Use the configured model - try Minimax first since it's loaded
 			Messages: []ai.Message{
 				{Role: "user", Content: prompt},
 			},
@@ -716,13 +773,28 @@ func callClaudeCode(prompt string) string {
 		
 		resp, err := aiClient.ChatCompletion(ctx, req)
 		if err != nil {
-			fmt.Printf("AI client error: %v\n", err)
-			// Fallback to simple response
-			return generateSimpleResponse(prompt)
+			fmt.Printf("AI client error for MiniMax-M2.1: %v\n", err)
+			// Try the other model as fallback
+			req.Model = "coder-model"
+			resp, err = aiClient.ChatCompletion(ctx, req)
+			if err != nil {
+				fmt.Printf("AI client fallback error for coder-model: %v\n", err)
+				// Still try to get a response from any available provider without specific model
+				req.Model = ""
+				resp, err = aiClient.ChatCompletion(ctx, req)
+				if err != nil {
+					fmt.Printf("AI client generic error: %v\n", err)
+					// Fallback to simple response
+					return generateSimpleResponse(prompt)
+				}
+			}
 		}
 		
-		if len(resp.Choices) > 0 {
-			return strings.TrimSpace(resp.Choices[0].Message.Content)
+		if resp != nil && len(resp.Choices) > 0 {
+			content := strings.TrimSpace(resp.Choices[0].Message.Content)
+			if content != "" {
+				return content
+			}
 		}
 	}
 	
