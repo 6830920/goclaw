@@ -216,6 +216,17 @@ docker-compose up -d
 ./deploy.sh docker
 ```
 
+### 快速在线预览
+```bash
+# 启动本地服务并通过隧道公开访问
+./local-tunnel.sh
+
+# 然后可以选择:
+# 1. 使用 ngrok 创建公共URL
+# 2. 使用 Cloudflare Tunnel
+# 3. 仅本地访问
+```
+
 ### CI/CD
 项目集成了 GitHub Actions 自动化流程：
 - 代码提交后自动运行测试
