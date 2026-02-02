@@ -16,6 +16,7 @@ import (
 	"openclaw-go/internal/memory"
 	"openclaw-go/internal/vector"
 	"openclaw-go/pkg/ai"
+	"openclaw-go/pkg/utils"
 )
 
 // Version info
@@ -427,6 +428,9 @@ func loadConfig() *config.Config {
 	
 	// Override default port to avoid conflicts with original OpenClaw
 	cfg.Gateway.Port = 18890
+	
+	// First, sync configuration from global to local if needed
+	utils.SyncGlobalConfig("config.json")
 	
 	// Try to load global config first (~/.openclaw/openclaw.json)
 	globalCfg, err := config.LoadGlobalConfig()
