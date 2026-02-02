@@ -163,6 +163,65 @@ goclaw/
 - [CONFIGURATION.md](CONFIGURATION.md) - 设置指南
 - [docs/project_structure.md](docs/project_structure.md) - 架构详情
 
+## 测试系统
+
+Goclaw包含全面的测试系统以确保代码质量和功能稳定性：
+
+### 单元测试
+```bash
+# 运行所有单元测试
+go test ./...
+
+# 运行特定包的测试
+go test ./internal/vector -v
+go test ./internal/cron -v
+```
+
+### 集成测试
+```bash
+# 使用测试脚本运行完整测试流程
+./test_server.sh full-test
+```
+
+### 测试覆盖范围
+- 向量存储和检索功能
+- 定时任务管理系统  
+- API端点功能验证
+- 并发访问安全性
+- 数据持久化功能
+
+详细测试信息请参见 [TESTING.md](TESTING.md)。
+
+## 部署
+
+### Docker 部署
+```bash
+# 构建并运行
+docker build -t goclaw .
+docker run -p 55789:55789 goclaw
+
+# 或使用 Docker Compose
+docker-compose up -d
+```
+
+### 一键部署脚本
+```bash
+# 查看部署选项
+./deploy.sh
+
+# 构建所有平台二进制文件
+./deploy.sh build
+
+# 构建 Docker 镜像
+./deploy.sh docker
+```
+
+### CI/CD
+项目集成了 GitHub Actions 自动化流程：
+- 代码提交后自动运行测试
+- 自动构建跨平台二进制文件
+- 自动创建 GitHub Releases
+
 ## 许可证
 
 MIT 许可证
