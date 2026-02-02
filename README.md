@@ -2,14 +2,17 @@
 
 A Go language implementation of the OpenClaw personal AI assistant framework.
 
+## 🇨🇳 [中文文档](README-ZH.md) | 🇺🇸 English Documentation
+
 ## 🎯 Status: Full Stack Implementation!
 
 ### 🌐 Web Interface
-Access the chat interface at `http://localhost:18889`  
+Access the chat interface at `http://localhost:55789`  
 Supports Progressive Web App (PWA) for mobile installation
 
 ### 🤖 AI Model Support
-- **Zhipu AI**: GLM-4 model support via API key
+- **Minimax AI**: MiniMax-M2.1 model support
+- **Qwen**: Qwen Coder model support
 - **Configurable**: Easy setup for remote models
 - **Fallback**: Built-in responses when no AI configured
 
@@ -25,7 +28,7 @@ This is a Go reimplementation of the original OpenClaw (https://github.com/openc
 - **Web Interface**: Modern UI accessible from any device
 - **Mobile Ready**: PWA support for home screen installation
 - **Memory System**: Short-term, long-term, and working memory with semantic search
-- **AI Integration**: Configurable model providers (Zhipu AI, others)
+- **AI Integration**: Configurable model providers (Minimax, Qwen, etc.)
 - **API Backend**: RESTful API for programmatic access
 
 ## Features Implemented
@@ -34,7 +37,7 @@ This is a Go reimplementation of the original OpenClaw (https://github.com/openc
 |---------|--------|
 | Web Interface (PWA) | ✅ Working |
 | Mobile Installation | ✅ Working |
-| Zhipu AI Integration | ✅ Configurable |
+| Minimax/Qwen Integration | ✅ Configurable |
 | Memory System | ✅ Working |
 | Vector Storage & Search | ✅ Working |
 | Short-term Memory | ✅ Working |
@@ -48,7 +51,7 @@ This is a Go reimplementation of the original OpenClaw (https://github.com/openc
 
 ```bash
 # Build
-cd ~/projects/openclaw-go
+cd ~/projects/goclaw
 ./build.sh
 
 # Configure (optional - for AI models)
@@ -58,10 +61,10 @@ cp config.example.json config.json
 # Run server
 ./bin/goclaw-server
 
-# Access Web UI at http://localhost:18889
+# Access Web UI at http://localhost:55789
 ```
 
-## API Endpoints (Port 18889)
+## API Endpoints (Port 55789)
 
 - `GET /` - Web interface
 - `GET /health` - Health check
@@ -80,7 +83,7 @@ To copy your existing OpenClaw configuration from `~/.openclaw/openclaw.json` to
 
 ```bash
 # Copy existing configuration (one-time operation)
-cp ~/.openclaw/openclaw.json ~/projects/openclaw-go/config.json
+cp ~/.openclaw/openclaw.json ~/projects/goclaw/config.json
 
 # Or use the provided tool:
 ./bin/copy-config
@@ -88,9 +91,9 @@ cp ~/.openclaw/openclaw.json ~/projects/openclaw-go/config.json
 
 ### Supported AI Providers
 The configuration supports multiple AI providers:
-- **Zhipu AI**: GLM-4 model support
-- **Minimax**: MiniMax-M2.1 model support  
+- **Minimax**: MiniMax-M2.1 model support
 - **Qwen**: Qwen Coder and Vision models
+- **Zhipu AI**: GLM-4 model support
 - **Other providers**: Configurable via models.providers
 
 Example configuration:
@@ -100,7 +103,7 @@ Example configuration:
     "providers": {
       "minimax": {
         "apiKey": "your_minimax_api_key",
-        "baseUrl": "https://api.minimaxi.com/anthropic"
+        "baseUrl": "https://api.minimax.chat/v1"
       },
       "qwen-portal": {
         "apiKey": "your_qwen_api_key",
@@ -118,9 +121,8 @@ Example configuration:
 ## Project Structure
 
 ```
-openclaw-go/
+goclaw/
 ├── cmd/
-│   ├── openclaw/          # CLI version
 │   └── server/            # HTTP API + Web UI server
 ├── internal/
 │   ├── chat/              # Chat session management

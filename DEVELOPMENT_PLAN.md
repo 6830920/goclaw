@@ -1,37 +1,39 @@
-# Goclaw 开发计划
+# Goclaw Development Plan
 
-## 阶段一：GitHub代码管理和项目初始化
+## 🇨🇳 [中文文档](DEVELOPMENT_PLAN-ZH.md) | 🇺🇸 English Documentation
 
-### 1.1 创建GitHub仓库
-- 在GitHub上创建 `openclaw-go` 仓库
-- 设置SSH密钥认证
-- 创建 `.gitignore` 文件（Go项目标准配置）
+## Phase 1: GitHub Code Management and Project Initialization
 
-### 1.2 初始化本地Git仓库
+### 1.1 Create GitHub Repository
+- Create `goclaw` repository on GitHub
+- Set up SSH key authentication
+- Create `.gitignore` file (standard Go project configuration)
+
+### 1.2 Initialize Local Git Repository
 ```bash
-cd ~/projects/openclaw-go
+cd ~/projects/goclaw
 git init
 git add .
 git commit -m "Initial commit: core structure"
-git remote add origin git@github.com:yourusername/openclaw-go.git
+git remote add origin git@github.com:6830920/goclaw.git
 git push -u origin main
 ```
 
-### 1.3 Git工作流
-- **main分支**: 生产代码
-- **develop分支**: 开发中的功能
-- **feature分支**: 各个功能模块
-- 使用GitHub Issues跟踪任务
-- 使用Pull Requests合并代码
+### 1.3 Git Workflow
+- **main branch**: Production code
+- **develop branch**: Features under development
+- **feature branches**: Individual feature modules
+- Use GitHub Issues to track tasks
+- Use Pull Requests to merge code
 
 ---
 
-## 阶段二：核心功能架构
+## Phase 2: Core Functional Architecture
 
-### 2.1 向量化引擎 (Vectorization)
-**目标**: 实现文本向量化，支持语义搜索
+### 2.1 Vectorization Engine
+**Goal**: Implement text vectorization, support semantic search
 
-**实现方案**:
+**Implementation**:
 ```go
 // internal/vector/embedding.go
 type Embedding struct {
@@ -45,16 +47,16 @@ type Embedder interface {
 }
 ```
 
-**可选模型**:
-- 本地 Ollama（推荐，支持多种embedding模型）
-- OpenAI API（兼容）
-- Anthropic API（兼容）
-- 本地sentence-transformers
+**Model Options**:
+- Local Ollama (recommended, supports multiple embedding models)
+- OpenAI API (compatible)
+- Anthropic API (compatible)
+- Local sentence-transformers
 
-### 2.2 记忆存储和检索 (Memory System)
-**目标**: 长期和短期记忆存储，支持语义查询
+### 2.2 Memory Storage and Retrieval
+**Goal**: Long-term and short-term memory storage, support semantic queries
 
-**架构设计**:
+**Architecture**:
 ```go
 // internal/memory/memory.go
 type MemoryStore struct {
@@ -66,19 +68,19 @@ type MemoryStore struct {
 type VectorStore struct {
     Embeddings []Embedding
     Metadata   []MemoryMetadata
-    Index      vector.Index // 使用faiss或hnswlib
+    Index      vector.Index // Use faiss or hnswlib
 }
 ```
 
-**存储方案**:
-- 使用ChromaDB（Go客户端可用）
-- 或使用Qdrant（原生Go，支持HTTP/gRPC）
-- 或简单的内存向量存储（起步阶段）
+**Storage Solutions**:
+- Use ChromaDB (Go client available)
+- Or use Qdrant (native Go, supports HTTP/gRPC)
+- Or simple in-memory vector storage (initial phase)
 
-### 2.3 对话系统 (Conversation)
-**目标**: 实现多轮对话、上下文管理
+### 2.3 Conversation System
+**Goal**: Implement multi-turn conversations, context management
 
-**实现**:
+**Implementation**:
 ```go
 // internal/chat/chat.go
 type ChatManager struct {
@@ -96,31 +98,31 @@ type ChatSession struct {
 
 ---
 
-## 阶段三：集成Claude Code
+## Phase 3: Claude Code Integration
 
-### 3.1 Claude Code集成方案
-**目标**: 使用Claude Code作为AI后端
+### 3.1 Claude Code Integration Plan
+**Goal**: Use Claude Code as AI backend
 
-**配置**:
+**Configuration**:
 ```json
 {
   "models": {
     "anthropic/claude-opus-4-5": {
       "apiKey": "local-or-env-key",
-      "endpoint": "http://localhost:8080" // 本地API
+      "endpoint": "http://localhost:8080" // local API
     }
   }
 }
 ```
 
-### 3.2 技能系统 (Skills)
-参考OpenClaw的技能架构：
-- 技能定义（SKILL.md）
-- 技能注册表
-- 技能安装和管理
-- 可下载的技能包
+### 3.2 Skill System
+Based on OpenClaw's skill architecture:
+- Skill definition (SKILL.md)
+- Skill registry
+- Skill installation and management
+- Downloadable skill packages
 
-**实现**:
+**Implementation**:
 ```go
 // pkg/skills/registry.go
 type SkillRegistry struct {
@@ -136,100 +138,102 @@ type Skill struct {
 
 ---
 
-## 阶段四：开发里程碑
+## Phase 4: Development Milestones
 
-### 里程碑 1: 基础架构（1周）✅
-- [x] GitHub仓库初始化
-- [x] 项目结构完善
-- [x] 基础配置系统
-- [ ] 单元测试覆盖 > 60%
+### Milestone 1: Basic Architecture (1 week) ✅
+- [x] GitHub repository initialization
+- [x] Project structure completion
+- [x] Basic configuration system
+- [x] Unit test coverage
 
-### 里程碑 2: 向量化引擎（1周）✅
-- [x] Embedding接口定义
-- [x] 本地Ollama集成
-- [x] 简单的向量存储
-- [x] 基本的相似度搜索
+### Milestone 2: Vectorization Engine (1 week) ✅
+- [x] Embedding interface definition
+- [x] Local Ollama integration
+- [x] Simple vector storage
+- [x] Basic similarity search
 
-### 里程碑 3: 记忆系统（1周）✅
-- [x] 短期记忆（对话缓冲）
-- [x] 长期记忆（向量存储）
-- [x] 记忆检索API
-- [x] 与对话系统集成
+### Milestone 3: Memory System (1 week) ✅
+- [x] Short-term memory (conversation buffer)
+- [x] Long-term memory (vector storage)
+- [x] Memory retrieval API
+- [x] Integration with conversation system
 
-### 里程碑 4: 对话功能（1周）✅
-- [x] ChatManager实现
-- [x] 上下文管理
-- [x] Claude Code集成（部分完成，有fallback）
-- [x] CLI界面
+### Milestone 4: Conversation Features (1 week) ✅
+- [x] ChatManager implementation
+- [x] Context management
+- [x] Claude Code integration (partially completed, with fallback)
+- [x] CLI interface
 
-### 里程碑 5: Web界面（1周）✅
-- [x] HTTP API服务器
-- [x] Web界面实现
-- [x] PWA支持（添加到主屏幕）
-- [x] 移动端适配
+### Milestone 5: Web Interface (1 week) ✅
+- [x] HTTP API server
+- [x] Web interface implementation
+- [x] PWA support (add to home screen)
+- [x] Mobile adaptation
 
-### 里程碑 6: AI模型集成（1周）✅
-- [x] 智谱AI (Zhipu) 集成
-- [x] 配置系统
-- [x] API密钥支持
-- [x] 模型切换机制
+### Milestone 6: AI Model Integration (1 week) ✅
+- [x] Minimax AI integration
+- [x] Qwen integration
+- [x] Zhipu AI integration
+- [x] Configuration system
+- [x] API key support
+- [x] Model switching mechanism
 
-### 里程碑 7: 技能系统（1周）
-- [ ] 技能注册表
-- [ ] 技能安装/卸载
-- [ ] 基础技能实现
-- [ ] 技能市场集成
+### Milestone 7: Skill System (1 week)
+- [ ] Skill registry
+- [ ] Skill install/uninstall
+- [ ] Basic skill implementations
+- [ ] Skill marketplace integration
 
 ---
 
-## 阶段五：可选功能
+## Phase 5: Optional Features
 
-### 5.1 通信通道
-- WebSocket网关
+### 5.1 Communication Channels
+- WebSocket gateway
 - Telegram Bot
 - Discord Bot
 - HTTP API
 
-### 5.2 工具集成
-- 文件操作
-- 命令执行
-- Web搜索
-- 浏览器控制
+### 5.2 Tool Integration
+- File operations
+- Command execution
+- Web search
+- Browser control
 
-### 5.3 语音支持
-- 语音识别（TTS/STT）
-- 语音对话
-
----
-
-## 技术栈总结
-
-| 模块 | 技术选择 |
-|------|---------|
-| 语言 | Go 1.19+ |
-| 向量数据库 | Qdrant / ChromaDB |
-| Embedding | Ollama（本地） |
-| AI模型 | Claude Code（本地/云端） |
-| 存储 | SQLite / 文件系统 |
-| 配置 | JSON/YAML |
-| 通信 | WebSocket / gRPC |
+### 5.3 Voice Support
+- Voice recognition (TTS/STT)
+- Voice conversations
 
 ---
 
-## 每日开发流程
+## Technology Stack Summary
 
-1. **早上**: Pull最新代码，检查CI状态
-2. **开发**: 创建feature分支，实现功能
-3. **测试**: 编写单元测试，确保通过
-4. **提交**: 提交代码，写清楚commit message
-5. **Code Review**: 创建PR，自我审查
-6. **合并**: 合并到develop分支
+| Module | Technology Choice |
+|--------|-------------------|
+| Language | Go 1.19+ |
+| Vector Database | In-memory / JSON persistence |
+| Embedding | Ollama (local) |
+| AI Models | Minimax, Qwen, Zhipu (cloud APIs) |
+| Storage | File system |
+| Configuration | JSON |
+| Communication | HTTP API / PWA |
 
 ---
 
-## 工具和脚本
+## Daily Development Process
 
-- `build.sh`: 构建脚本
-- `test.sh`: 运行测试
-- `lint.sh`: 代码检查
-- `run.sh`: 启动服务
+1. **Morning**: Pull latest code, check CI status
+2. **Development**: Create feature branch, implement functionality
+3. **Testing**: Write unit tests, ensure passes
+4. **Commit**: Commit code, write clear commit messages
+5. **Code Review**: Create PR, self-review
+6. **Merge**: Merge to develop branch
+
+---
+
+## Tools and Scripts
+
+- `build.sh`: Build script
+- `test.sh`: Run tests
+- `copy_config.sh`: Configuration copy tool
+- `run.sh`: Start service
