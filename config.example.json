@@ -1,0 +1,62 @@
+{
+  "agent": {
+    "model": "anthropic/claude-opus-4-5",
+    "workspace": "~/.openclaw/workspace",
+    "sandbox": {
+      "mode": "off",
+      "allow": [
+        "bash",
+        "process",
+        "read",
+        "write",
+        "edit",
+        "sessions_list",
+        "sessions_history",
+        "sessions_send",
+        "sessions_spawn"
+      ],
+      "deny": [
+        "browser",
+        "canvas",
+        "nodes",
+        "cron",
+        "discord",
+        "gateway"
+      ]
+    },
+    "defaults": {
+      "imageModel": "openai/gpt-4-vision-preview",
+      "workspace": "~/.openclaw/workspace"
+    }
+  },
+  "channels": {
+    "telegram": {
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+    },
+    "discord": {
+      "token": "YOUR_DISCORD_BOT_TOKEN_HERE"
+    },
+    "whatsapp": {
+      "enabled": false
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "bind": "127.0.0.1",
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "auth": {
+      "mode": "off"
+    }
+  },
+  "models": {
+    "anthropic": {
+      "apiKey": "YOUR_ANTHROPIC_API_KEY_HERE"
+    },
+    "openai": {
+      "apiKey": "YOUR_OPENAI_API_KEY_HERE"
+    }
+  }
+}
