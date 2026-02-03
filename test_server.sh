@@ -8,7 +8,7 @@ set -e
 echo "🔄 启动 Goclaw 测试系统..."
 
 # 设置端口
-PORT=55790  # 使用不同端口避免冲突
+PORT=55789  # Goclaw标准端口
 
 # 函数：构建服务器
 build_server() {

@@ -16,7 +16,7 @@ func NewConversationBuffer(maxSize int) *ConversationBuffer {
 	if maxSize <= 0 {
 		maxSize = 50
 	}
-	
+
 	return &ConversationBuffer{
 		maxSize: maxSize,
 		buffer:  list.New(),
@@ -42,13 +42,13 @@ func (cb *ConversationBuffer) Add(entry MemoryEntry) {
 // GetRecent returns the most recent entries
 func (cb *ConversationBuffer) GetRecent(count int) []MemoryEntry {
 	results := make([]MemoryEntry, 0, count)
-	
+
 	elem := cb.buffer.Back()
 	for elem != nil && len(results) < count {
 		results = append(results, elem.Value.(MemoryEntry))
 		elem = elem.Prev()
 	}
-	
+
 	return results
 }
 

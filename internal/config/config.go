@@ -8,19 +8,21 @@ import (
 
 // Config represents the main configuration
 type Config struct {
-	Agent    AgentConfig            `json:"agent,omitempty"`
-	Channels map[string]interface{} `json:"channels,omitempty"`
-	Gateway  GatewayConfig          `json:"gateway,omitempty"`
-	Models   map[string]interface{} `json:"models,omitempty"`
-	Zhipu    ZhipuConfig            `json:"zhipu,omitempty"`
+	Agent     AgentConfig             `json:"agent,omitempty"`
+	Channels  map[string]interface{}  `json:"channels,omitempty"`
+	Gateway   GatewayConfig           `json:"gateway,omitempty"`
+	Models    map[string]interface{}  `json:"models,omitempty"`
+	Zhipu     ZhipuConfig             `json:"zhipu,omitempty"`
+	Heartbeat HeartbeatConfig         `json:"heartbeat,omitempty"`
+	Identity  map[string]string       `json:"identity,omitempty"`
 }
 
 // AgentConfig holds agent-specific configuration
 type AgentConfig struct {
-	Model     string                 `json:"model,omitempty"`
-	Workspace string                 `json:"workspace,omitempty"`
-	Sandbox   SandboxConfig          `json:"sandbox,omitempty"`
-	Defaults  AgentDefaults          `json:"defaults,omitempty"`
+	Model     string        `json:"model,omitempty"`
+	Workspace string        `json:"workspace,omitempty"`
+	Sandbox   SandboxConfig `json:"sandbox,omitempty"`
+	Defaults  AgentDefaults `json:"defaults,omitempty"`
 }
 
 // AgentDefaults holds default agent settings
@@ -31,11 +33,11 @@ type AgentDefaults struct {
 
 // GatewayConfig holds gateway configuration
 type GatewayConfig struct {
-	Port         int                    `json:"port,omitempty"`
-	Bind         string                 `json:"bind,omitempty"`
-	Tailscale    TailscaleConfig        `json:"tailscale,omitempty"`
-	Auth         AuthConfig             `json:"auth,omitempty"`
-	Credentials  map[string]interface{} `json:"credentials,omitempty"`
+	Port        int                    `json:"port,omitempty"`
+	Bind        string                 `json:"bind,omitempty"`
+	Tailscale   TailscaleConfig        `json:"tailscale,omitempty"`
+	Auth        AuthConfig             `json:"auth,omitempty"`
+	Credentials map[string]interface{} `json:"credentials,omitempty"`
 }
 
 // TailscaleConfig holds Tailscale-related configuration
@@ -47,10 +49,10 @@ type TailscaleConfig struct {
 
 // AuthConfig holds authentication configuration
 type AuthConfig struct {
-	Mode         string   `json:"mode,omitempty"` // "off", "password", "oauth"
-	Password     string   `json:"password,omitempty"`
-	AllowTailscale bool   `json:"allowTailscale,omitempty"`
-	Users        []string `json:"users,omitempty"`
+	Mode           string   `json:"mode,omitempty"` // "off", "password", "oauth"
+	Password       string   `json:"password,omitempty"`
+	AllowTailscale bool     `json:"allowTailscale,omitempty"`
+	Users          []string `json:"users,omitempty"`
 }
 
 // SandboxConfig holds sandbox configuration
@@ -63,9 +65,19 @@ type SandboxConfig struct {
 
 // ZhipuConfig holds Zhipu AI configuration
 type ZhipuConfig struct {
-	ApiKey string `json:"apiKey,omitempty"`
-	Model  string `json:"model,omitempty"` // Default model to use
+	ApiKey  string `json:"apiKey,omitempty"`
+	Model   string `json:"model,omitempty"`   // Default model to use
 	BaseURL string `json:"baseUrl,omitempty"` // Custom base URL if needed
+}
+
+// HeartbeatConfig holds heartbeat configuration
+type HeartbeatConfig struct {
+	Enabled bool   `json:"enabled,omitempty"` // Whether heartbeat is enabled
+	Interval string `json:"interval,omitempty"` // How often to check (e.g., "30m", "1h")
+	Prompt  string `json:"prompt,omitempty"`  // The heartbeat prompt to use
+	Target  string `json:"target,omitempty"`  // Target for heartbeat responses
+	Model   string `json:"model,omitempty"`   // Model to use for heartbeat processing
+	AckMaxChars int `json:"ackMaxChars,omitempty"` // Max chars for heartbeat acknowledgments
 }
 
 // LoadConfig loads configuration from a JSON file

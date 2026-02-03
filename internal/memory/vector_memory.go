@@ -22,9 +22,9 @@ type MemoryMetadata struct {
 
 // VectorMemory manages long-term vector-based memory
 type VectorMemory struct {
-	mu       sync.RWMutex
-	entries  map[string]MemoryEntry
-	vectors  map[string][]float32
+	mu      sync.RWMutex
+	entries map[string]MemoryEntry
+	vectors map[string][]float32
 }
 
 // NewVectorMemory creates a new vector memory store
@@ -42,7 +42,7 @@ func (vm *VectorMemory) Add(entry MemoryEntry, embedding []float32) error {
 
 	vm.entries[entry.ID] = entry
 	vm.vectors[entry.ID] = embedding
-	
+
 	return nil
 }
 
@@ -52,7 +52,7 @@ func (vm *VectorMemory) Search(ctx context.Context, query []float32, limit int) 
 	defer vm.mu.RUnlock()
 
 	type scoredEntry struct {
-		id       string
+		id         string
 		similarity float32
 	}
 
@@ -60,7 +60,7 @@ func (vm *VectorMemory) Search(ctx context.Context, query []float32, limit int) 
 	for id, vector := range vm.vectors {
 		score := cosineSimilarity(query, vector)
 		results = append(results, scoredEntry{
-			id:        id,
+			id:         id,
 			similarity: score,
 		})
 	}
@@ -151,7 +151,7 @@ func sqrt(x float64) float64 {
 	if x < 0 {
 		return 0
 	}
-	
+
 	// Using Newton's method
 	z := x / 2
 	for i := 0; i < 20; i++ {

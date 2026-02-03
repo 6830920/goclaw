@@ -29,11 +29,202 @@
             padding: 1rem;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .header h1 {
             font-size: 1.5rem;
             font-weight: 600;
+        }
+        
+        .dev-status-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .dev-status-btn:hover {
+            background-color: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+            transform: scale(1.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease-out;
+        }
+        
+        @keyframes modalIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        
+        .status-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .status-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .status-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 0.95rem;
+        }
+        
+        .status-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #f0f2f5;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease-out;
+        }
+        
+        .refresh-btn {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #0056cc;
+        }
+        
+        .refresh-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         .chat-container {
@@ -158,6 +349,82 @@
 <body>
     <div class="header">
         <h1>🤖 Goclaw</h1>
+        <button class="dev-status-btn" id="dev-status-btn" title="查看开发状态">📊</button>
+    </div>
+    
+    <!-- Development Status Modal -->
+    <div class="modal" id="dev-status-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔧 Goclaw 开发状态</h2>
+                <button class="close-btn" id="close-modal">×</button>
+            </div>
+            
+            <div id="dev-status-content">
+                <div class="status-section">
+                    <div class="status-label">项目状态</div>
+                    <div class="status-value" id="project-status">加载中...</div>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">当前模型</div>
+                    <div class="status-value" id="current-model">加载中...</div>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">最近提交</div>
+                    <ul class="status-list">
+                        <li><strong>提交:</strong> <span id="commit-hash">加载中...</span></li>
+                        <li><strong>消息:</strong> <span id="commit-message">加载中...</span></li>
+                        <li><strong>作者:</strong> <span id="commit-author">加载中...</span></li>
+                        <li><strong>时间:</strong> <span id="commit-date">加载中...</span> (<span id="commit-time-ago">加载中...</span>)</li>
+                        <li><strong>分支:</strong> <span id="commit-branch">加载中...</span></li>
+                    </ul>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">最近修改文件</div>
+                    <ul class="status-list">
+                        <li><strong>文件:</strong> <span id="file-name">加载中...</span></li>
+                        <li><strong>路径:</strong> <span id="file-path">加载中...</span></li>
+                        <li><strong>时间:</strong> <span id="file-time">加载中...</span> (<span id="file-time-ago">加载中...</span>)</li>
+                    </ul>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">Token 使用情况</div>
+                    <ul class="status-list">
+                        <li><strong>总计:</strong> <span id="total-tokens">加载中...</span> tokens</li>
+                        <li><strong>估算成本:</strong> ¥<span id="estimated-cost">加载中...</span></li>
+                        <li><strong>最后更新:</strong> <span id="token-last-update">加载中...</span></li>
+                    </ul>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">已实现功能</div>
+                    <ul class="status-list" id="implemented-features">
+                        <li>加载中...</li>
+                    </ul>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">计划实现功能</div>
+                    <ul class="status-list" id="planned-features">
+                        <li>加载中...</li>
+                    </ul>
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">更新时间</div>
+                    <div class="status-value" id="build-time">加载中...</div>
+                </div>
+                
+                <button class="refresh-btn" id="refresh-status">
+                    <span class="loading-spinner" id="loading-spinner" style="display: none;"></span>
+                    <span id="refresh-text">🔄 刷新状态</span>
+                </button>
+            </div>
+        </div>
     </div>
     
     <div class="chat-container">
@@ -178,6 +445,12 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.getElementById('typing-indicator');
         
+        // Development status modal elements
+        const devStatusBtn = document.getElementById('dev-status-btn');
+        const devStatusModal = document.getElementById('dev-status-modal');
+        const closeModal = document.getElementById('close-modal');
+        const refreshBtn = document.getElementById('refresh-status');
+        
         let currentSessionId = 'web_' + new Date().getTime();
         
         // Add welcome message
@@ -188,6 +461,120 @@
         
         // Send message on button click
         sendButton.addEventListener('click', sendMessage);
+        
+        // Development status modal functionality
+        devStatusBtn.addEventListener('click', showDevStatus);
+        closeModal.addEventListener('click', hideDevStatus);
+        refreshBtn.addEventListener('click', loadDevStatus);
+        
+        // Close modal when clicking outside content
+        devStatusModal.addEventListener('click', function(e) {
+            if (e.target === devStatusModal) {
+                hideDevStatus();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && devStatusModal.classList.contains('show')) {
+                hideDevStatus();
+            }
+        });
+        
+        function showDevStatus() {
+            devStatusModal.classList.add('show');
+            loadDevStatus();
+        }
+        
+        function hideDevStatus() {
+            devStatusModal.classList.remove('show');
+        }
+        
+        async function loadDevStatus() {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const refreshText = document.getElementById('refresh-text');
+            
+            try {
+                // Show loading state
+                loadingSpinner.style.display = 'inline-block';
+                refreshText.textContent = '加载中...';
+                refreshBtn.disabled = true;
+                
+                // Fetch development status
+                const response = await fetch('/api/dev-status');
+                const result = await response.json();
+                
+                if (result.status === 'ok' && result.data) {
+                    updateDevStatusDisplay(result.data);
+                } else {
+                    throw new Error('Failed to load development status');
+                }
+            } catch (error) {
+                console.error('Error loading development status:', error);
+                alert('加载开发状态失败，请稍后重试。');
+            } finally {
+                // Hide loading state
+                loadingSpinner.style.display = 'none';
+                refreshText.textContent = '🔄 刷新状态';
+                refreshBtn.disabled = false;
+            }
+        }
+        
+        function updateDevStatusDisplay(data) {
+            // Update project status
+            document.getElementById('project-status').textContent = data.projectStatus || '未知';
+            
+            // Update current model
+            document.getElementById('current-model').textContent = data.currentModel || '未知';
+            
+            // Update commit info
+            document.getElementById('commit-hash').textContent = data.lastCommit.hash || '未知';
+            document.getElementById('commit-message').textContent = data.lastCommit.message || '未知';
+            document.getElementById('commit-author').textContent = data.lastCommit.author || '未知';
+            document.getElementById('commit-date').textContent = data.lastCommit.date || '未知';
+            document.getElementById('commit-time-ago').textContent = data.lastCommit.timeAgo || '未知';
+            document.getElementById('commit-branch').textContent = data.lastCommit.branch || '未知';
+            
+            // Update file modification info
+            document.getElementById('file-name').textContent = data.lastFileMod.filename || '未知';
+            document.getElementById('file-path').textContent = data.lastFileMod.path || '未知';
+            document.getElementById('file-time').textContent = data.lastFileMod.modifiedTime || '未知';
+            document.getElementById('file-time-ago').textContent = data.lastFileMod.timeAgo || '未知';
+            
+            // Update token usage
+            document.getElementById('total-tokens').textContent = data.tokenUsage.totalTokens.toLocaleString() || '0';
+            document.getElementById('estimated-cost').textContent = data.tokenUsage.estimatedCost.toFixed(2) || '0.00';
+            document.getElementById('token-last-update').textContent = data.tokenUsage.lastUpdate || '未知';
+            
+            // Update implemented features
+            const implementedList = document.getElementById('implemented-features');
+            implementedList.innerHTML = '';
+            if (data.implementedFeatures && data.implementedFeatures.length > 0) {
+                data.implementedFeatures.forEach(feature => {
+                    const li = document.createElement('li');
+                    li.innerHTML = feature;
+                    implementedList.appendChild(li);
+                });
+            } else {
+                implementedList.innerHTML = '<li>暂无已实现功能</li>';
+            }
+            
+            // Update planned features
+            const plannedList = document.getElementById('planned-features');
+            plannedList.innerHTML = '';
+            if (data.plannedFeatures && data.plannedFeatures.length > 0) {
+                data.plannedFeatures.forEach(feature => {
+                    const li = document.createElement('li');
+                    li.innerHTML = feature;
+                    plannedList.appendChild(li);
+                });
+            } else {
+                plannedList.innerHTML = '<li>暂无计划功能</li>';
+            }
+            
+            // Update build time
+            document.getElementById('build-time').textContent = data.buildTime || '未知';
+        }
         
         // Send message on Enter key (but allow Shift+Enter for new line)
         messageInput.addEventListener('keydown', function(e) {

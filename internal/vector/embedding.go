@@ -14,14 +14,14 @@ import (
 
 // Embedding represents a text embedding vector
 type Embedding struct {
-	Values []float32  `json:"vector"`
-	Model  string     `json:"model"`
+	Values []float32 `json:"vector"`
+	Model  string    `json:"model"`
 }
 
 // EmbedRequest represents a request to generate embeddings
 type EmbedRequest struct {
-	Model  string   `json:"model"`
-	Prompt string   `json:"prompt"`
+	Model  string `json:"model"`
+	Prompt string `json:"prompt"`
 }
 
 // EmbedResponse represents the response from an embedding API
@@ -79,7 +79,7 @@ func (o *OllamaEmbedder) Embed(ctx context.Context, text string) ([]float32, err
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", 
+	req, err := http.NewRequestWithContext(ctx, "POST",
 		fmt.Sprintf("%s/api/embeddings", o.Endpoint), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -110,7 +110,7 @@ func (o *OllamaEmbedder) Embed(ctx context.Context, text string) ([]float32, err
 // EmbedBatch generates embeddings for multiple texts
 func (o *OllamaEmbedder) EmbedBatch(ctx context.Context, texts []string) ([][]float32, error) {
 	embeddings := make([][]float32, len(texts))
-	
+
 	for i, text := range texts {
 		emb, err := o.Embed(ctx, text)
 		if err != nil {
@@ -118,7 +118,7 @@ func (o *OllamaEmbedder) EmbedBatch(ctx context.Context, texts []string) ([][]fl
 		}
 		embeddings[i] = emb
 	}
-	
+
 	return embeddings, nil
 }
 
@@ -168,7 +168,7 @@ func Normalize(v []float32) []float32 {
 		norm += v[i] * v[i]
 	}
 	norm = float32(math.Sqrt(float64(norm)))
-	
+
 	if norm == 0 {
 		return v
 	}

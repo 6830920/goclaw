@@ -45,7 +45,7 @@ func SyncGlobalConfig(localConfigPath string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read local config: %w", err)
 		}
-		
+
 		if err := json.Unmarshal(localData, &localConfig); err != nil {
 			return fmt.Errorf("failed to parse local config: %w", err)
 		}

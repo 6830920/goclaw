@@ -23,8 +23,8 @@ type MemoryMetadata struct {
 
 // VectorEntry represents a stored vector with metadata
 type VectorEntry struct {
-	Vector   []float32       `json:"vector"`
-	Metadata MemoryMetadata  `json:"metadata"`
+	Vector   []float32      `json:"vector"`
+	Metadata MemoryMetadata `json:"metadata"`
 }
 
 // VectorStore interface for storing and retrieving vectors
@@ -41,17 +41,17 @@ type VectorStore interface {
 
 // InMemoryStore is a simple in-memory vector store
 type InMemoryStore struct {
-	mu        sync.RWMutex
-	vectors   map[string]*VectorEntry
-	embedder  Embedder
+	mu       sync.RWMutex
+	vectors  map[string]*VectorEntry
+	embedder Embedder
 }
 
 // SearchResult represents a search match
 type SearchResult struct {
-	ID        string  `json:"id"`
-	Score     float32 `json:"score"`
-	Content   string  `json:"content"`
-	Metadata  MemoryMetadata `json:"metadata"`
+	ID       string         `json:"id"`
+	Score    float32        `json:"score"`
+	Content  string         `json:"content"`
+	Metadata MemoryMetadata `json:"metadata"`
 }
 
 // NewInMemoryStore creates a new in-memory vector store
@@ -69,7 +69,7 @@ func (s *InMemoryStore) Add(ctx context.Context, vector []float32, metadata Memo
 
 	// Generate ID if not provided
 	if metadata.ID == "" {
-		metadata.ID = fmt.Sprintf("mem_%d", len(s.vectors))
+		metadata.ID = fmt.Sprintf("vec_%d_%d", len(s.vectors), now())
 	}
 
 	entry := &VectorEntry{
@@ -113,8 +113,8 @@ func (s *InMemoryStore) Search(ctx context.Context, query []float32, limit int) 
 	defer s.mu.RUnlock()
 
 	type scoredEntry struct {
-		id        string
-		entry     *VectorEntry
+		id         string
+		entry      *VectorEntry
 		similarity float32
 	}
 
@@ -122,8 +122,8 @@ func (s *InMemoryStore) Search(ctx context.Context, query []float32, limit int) 
 	for id, entry := range s.vectors {
 		score := Similarity(query, entry.Vector)
 		results = append(results, scoredEntry{
-			id:        id,
-			entry:     entry,
+			id:         id,
+			entry:      entry,
 			similarity: score,
 		})
 	}
@@ -142,10 +142,10 @@ func (s *InMemoryStore) Search(ctx context.Context, query []float32, limit int) 
 	searchResults := make([]SearchResult, len(results))
 	for i, r := range results {
 		searchResults[i] = SearchResult{
-			ID:        r.id,
-			Score:     r.similarity,
-			Content:   r.entry.Metadata.Content,
-			Metadata:  r.entry.Metadata,
+			ID:       r.id,
+			Score:    r.similarity,
+			Content:  r.entry.Metadata.Content,
+			Metadata: r.entry.Metadata,
 		}
 	}
 
@@ -237,8 +237,8 @@ func (s *InMemoryStore) Save(ctx context.Context, path string) error {
 
 	// Convert to serializable format
 	type SerializedEntry struct {
-		Vector   []float32       `json:"vector"`
-		Metadata MemoryMetadata  `json:"metadata"`
+		Vector   []float32      `json:"vector"`
+		Metadata MemoryMetadata `json:"metadata"`
 	}
 
 	serialized := make(map[string]SerializedEntry)
@@ -294,4 +294,12 @@ func (s *InMemoryStore) Load(ctx context.Context, path string) error {
 // now returns current Unix timestamp
 func now() int64 {
 	return time.Now().Unix()
+}
+
+// NewSQLiteStore creates a new SQLite-based vector store
+// If SQLite build tag is not set, returns in-memory store
+func NewSQLiteStore(embedder Embedder, dbPath string) (VectorStore, error) {
+	// For now, return in-memory store as fallback
+	// Actual SQLite implementation would require CGO
+	return NewInMemoryStore(embedder), nil
 }

@@ -21,7 +21,7 @@ type ChatCompletionRequest struct {
 
 // Message represents a chat message
 type Message struct {
-	Role    string `json:"role"`    // "user", "assistant", "system"
+	Role    string `json:"role"` // "user", "assistant", "system"
 	Content string `json:"content"`
 }
 
@@ -67,7 +67,7 @@ func NewZhipuClient(apiKey, baseURL, model string) *ZhipuClient {
 	if baseURL == "" {
 		baseURL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 	}
-	
+
 	if model == "" {
 		model = "glm-4"
 	}
@@ -151,13 +151,13 @@ func (z *ZhipuClient) SendMessage(ctx context.Context, role, content string) (st
 
 // AnthropicMessage represents a chat message for Anthropic API
 type AnthropicMessage struct {
-	Role    string `json:"role"`    // "user", "assistant"
+	Role    string `json:"role"` // "user", "assistant"
 	Content string `json:"content"`
 }
 
 // AnthropicContent represents content in Anthropic response
 type AnthropicContent struct {
-	Type string `json:"type"`  // Usually "text"
+	Type string `json:"type"` // Usually "text"
 	Text string `json:"text"`
 }
 
@@ -169,10 +169,10 @@ type AnthropicUsage struct {
 
 // AnthropicMessageRequest represents a request to an Anthropic-compatible API
 type AnthropicMessageRequest struct {
-	Model     string           `json:"model"`
+	Model     string             `json:"model"`
 	Messages  []AnthropicMessage `json:"messages"`
-	MaxTokens int              `json:"max_tokens"`
-	Stream    bool             `json:"stream"`
+	MaxTokens int                `json:"max_tokens"`
+	Stream    bool               `json:"stream"`
 }
 
 // AnthropicMessageResponse represents a response from an Anthropic-compatible API
@@ -261,7 +261,7 @@ func (a *AnthropicCompatibleClient) ChatCompletion(ctx context.Context, req Chat
 // convertToAnthropicMessages converts OpenAI messages to Anthropic format
 func convertToAnthropicMessages(messages []Message) []AnthropicMessage {
 	var anthropicMessages []AnthropicMessage
-	
+
 	for _, msg := range messages {
 		// Anthropic requires role to be either "user" or "assistant"
 		role := msg.Role
@@ -275,7 +275,7 @@ func convertToAnthropicMessages(messages []Message) []AnthropicMessage {
 			Content: msg.Content,
 		})
 	}
-	
+
 	return anthropicMessages
 }
 
@@ -408,7 +408,7 @@ func (m *MultiProviderClient) ChatCompletion(ctx context.Context, req ChatComple
 		}
 	}
 
-	// If no specific provider was found or the specific one doesn't exist, 
+	// If no specific provider was found or the specific one doesn't exist,
 	// try to use any available provider
 	for _, client := range m.Providers {
 		// Just use the first available client as fallback

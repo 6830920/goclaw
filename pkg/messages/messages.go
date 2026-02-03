@@ -9,7 +9,7 @@ import (
 type Message struct {
 	ID        string    `json:"id"`
 	SessionID string    `json:"sessionId"`
-	Role      string    `json:"role"`      // "user", "assistant", "system"
+	Role      string    `json:"role"` // "user", "assistant", "system"
 	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 	Metadata  Metadata  `json:"metadata,omitempty"`
@@ -17,12 +17,12 @@ type Message struct {
 
 // Metadata holds additional information about a message
 type Metadata struct {
-	Channel   string            `json:"channel,omitempty"`
-	Author    string            `json:"author,omitempty"`
-	ThreadID  string            `json:"threadId,omitempty"`
-	Files     []string          `json:"files,omitempty"`
-	Tags      []string          `json:"tags,omitempty"`
-	Custom    map[string]string `json:"custom,omitempty"`
+	Channel  string            `json:"channel,omitempty"`
+	Author   string            `json:"author,omitempty"`
+	ThreadID string            `json:"threadId,omitempty"`
+	Files    []string          `json:"files,omitempty"`
+	Tags     []string          `json:"tags,omitempty"`
+	Custom   map[string]string `json:"custom,omitempty"`
 }
 
 // Session represents a conversation session
@@ -74,7 +74,7 @@ func (m *Manager) AddMessage(sessionID string, role, content string) error {
 	if !exists {
 		return ErrSessionNotFound
 	}
-	
+
 	message := Message{
 		ID:        generateID(), // In a real implementation, this would use a proper ID generator
 		SessionID: sessionID,
@@ -82,10 +82,10 @@ func (m *Manager) AddMessage(sessionID string, role, content string) error {
 		Content:   content,
 		Timestamp: time.Now(),
 	}
-	
+
 	session.Messages = append(session.Messages, message)
 	session.UpdatedAt = time.Now()
-	
+
 	return nil
 }
 
@@ -95,13 +95,13 @@ func (m *Manager) GetMessage(sessionID, messageID string) (*Message, error) {
 	if !exists {
 		return nil, ErrSessionNotFound
 	}
-	
+
 	for _, msg := range session.Messages {
 		if msg.ID == messageID {
 			return &msg, nil
 		}
 	}
-	
+
 	return nil, ErrMessageNotFound
 }
 
@@ -111,7 +111,7 @@ func (m *Manager) ListMessages(sessionID string) ([]Message, error) {
 	if !exists {
 		return nil, ErrSessionNotFound
 	}
-	
+
 	return session.Messages, nil
 }
 

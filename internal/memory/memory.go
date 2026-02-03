@@ -32,18 +32,18 @@ type MemoryEntry struct {
 
 // MemoryStore manages all types of memory
 type MemoryStore struct {
-	mu          sync.RWMutex
-	shortTerm   *ConversationBuffer
-	longTerm    *VectorMemory
-	workingSet  *WorkingMemory
-	config      MemoryConfig
+	mu         sync.RWMutex
+	shortTerm  *ConversationBuffer
+	longTerm   *VectorMemory
+	workingSet *WorkingMemory
+	config     MemoryConfig
 }
 
 // MemoryConfig holds memory configuration
 type MemoryConfig struct {
-	ShortTermMax   int     // Maximum short-term memories
-	WorkingMax     int     // Maximum working memory items
-	SimilarityCut  float32 // Similarity threshold for long-term memory
+	ShortTermMax  int     // Maximum short-term memories
+	WorkingMax    int     // Maximum working memory items
+	SimilarityCut float32 // Similarity threshold for long-term memory
 }
 
 // MemorySearchResult represents a memory search result
@@ -66,9 +66,9 @@ func NewMemoryStore(config MemoryConfig) *MemoryStore {
 // DefaultConfig returns default memory configuration
 func DefaultConfig() MemoryConfig {
 	return MemoryConfig{
-		ShortTermMax:   50,    // Keep last 50 messages
-		WorkingMax:     10,    // Keep 10 working items
-		SimilarityCut:  0.7,   // 70% similarity threshold
+		ShortTermMax:  50,  // Keep last 50 messages
+		WorkingMax:    10,  // Keep 10 working items
+		SimilarityCut: 0.7, // 70% similarity threshold
 	}
 }
 
@@ -170,7 +170,7 @@ func (m *MemoryStore) GetContext(ctx context.Context, query string, embedding []
 				break
 			}
 			if r.Score >= m.config.SimilarityCut {
-				contextParts = append(contextParts, 
+				contextParts = append(contextParts,
 					fmt.Sprintf("[MEMORY (%.2f)]: %s", r.Score, r.Content))
 			}
 		}
@@ -179,7 +179,7 @@ func (m *MemoryStore) GetContext(ctx context.Context, query string, embedding []
 	// 3. Get recent short-term memories
 	recent := m.shortTerm.GetRecent(10)
 	for _, entry := range recent {
-		contextParts = append(contextParts, 
+		contextParts = append(contextParts,
 			fmt.Sprintf("[RECENT]: %s", entry.Content))
 	}
 
@@ -217,7 +217,7 @@ func (m *MemoryStore) Consolidate(embedder *vector.OllamaEmbedder) error {
 
 			// Add to long-term
 			m.longTerm.Add(entry, embedding)
-			
+
 			// Remove from short-term
 			m.shortTerm.Remove(entry.ID)
 		}

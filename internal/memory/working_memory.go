@@ -8,16 +8,16 @@ import (
 
 // WorkingMemory manages active working memory items
 type WorkingMemory struct {
-	mu       sync.RWMutex
-	items    WorkingHeap
+	mu    sync.RWMutex
+	items WorkingHeap
 }
 
 // WorkingHeap is a priority queue for working memory items
 type WorkingHeap []WorkingItem
 
-func (wh WorkingHeap) Len() int { return len(wh) }
+func (wh WorkingHeap) Len() int           { return len(wh) }
 func (wh WorkingHeap) Less(i, j int) bool { return wh[i].Priority > wh[j].Priority }
-func (wh WorkingHeap) Swap(i, j int) { wh[i], wh[j] = wh[j], wh[i] }
+func (wh WorkingHeap) Swap(i, j int)      { wh[i], wh[j] = wh[j], wh[i] }
 
 func (wh *WorkingHeap) Push(x interface{}) {
 	*wh = append(*wh, x.(WorkingItem))
@@ -50,7 +50,7 @@ func NewWorkingMemory(maxSize int) *WorkingMemory {
 		items: make(WorkingHeap, 0, maxSize),
 	}
 	heap.Init(&wm.items)
-	
+
 	return wm
 }
 

@@ -35,12 +35,12 @@ type Agent struct {
 
 // Channel represents a communication channel (WhatsApp, Telegram, etc.)
 type Channel struct {
-	ID          string
-	Name        string
-	Type        string // "whatsapp", "telegram", "discord", etc.
-	Config      map[string]interface{}
-	Connected   bool
-	LastActive  time.Time
+	ID         string
+	Name       string
+	Type       string // "whatsapp", "telegram", "discord", etc.
+	Config     map[string]interface{}
+	Connected  bool
+	LastActive time.Time
 }
 
 // Gateway is the main control plane

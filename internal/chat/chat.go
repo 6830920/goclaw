@@ -9,7 +9,7 @@ import (
 
 // Message represents a chat message
 type Message struct {
-	Role      string                 `json:"role"`       // "user", "assistant", "system"
+	Role      string                 `json:"role"` // "user", "assistant", "system"
 	Content   string                 `json:"content"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 	Timestamp time.Time              `json:"timestamp"`
@@ -37,7 +37,7 @@ func NewChatManager(maxMemory int) *ChatManager {
 	if maxMemory <= 0 {
 		maxMemory = 100
 	}
-	
+
 	return &ChatManager{
 		sessions:  make(map[string]*ChatSession),
 		maxMemory: maxMemory,
@@ -94,14 +94,14 @@ func (cm *ChatManager) AddMessage(sessionID, role, content string) error {
 	if len(session.Messages) > cm.maxMemory {
 		// Keep system prompt (if any) and last N messages
 		pruned := make([]Message, 0, cm.maxMemory)
-		
+
 		// Add any system-like messages at the start
 		for _, msg := range session.Messages {
 			if msg.Role == "system" {
 				pruned = append(pruned, msg)
 			}
 		}
-		
+
 		// Add last N messages
 		remaining := cm.maxMemory - len(pruned)
 		if remaining > 0 {
@@ -111,7 +111,7 @@ func (cm *ChatManager) AddMessage(sessionID, role, content string) error {
 			}
 			pruned = append(pruned, session.Messages[start:]...)
 		}
-		
+
 		session.Messages = pruned
 	}
 
