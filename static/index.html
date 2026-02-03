@@ -84,9 +84,9 @@
             background-color: white;
             border-radius: 12px;
             padding: 2rem;
-            max-width: 600px;
+            max-width: 700px;
             width: 90%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             animation: modalIn 0.3s ease-out;
@@ -143,14 +143,100 @@
         .status-section {
             margin-bottom: 1.5rem;
         }
-        
+
+        .timeline-section {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid #6a11cb;
+        }
+
+        .timeline-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #6a11cb;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-item {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .timeline-item.past {
+            border-top: 4px solid #10b981;
+        }
+
+        .timeline-item.present {
+            border-top: 4px solid #007AFF;
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .timeline-item.future {
+            border-top: 4px solid #f59e0b;
+        }
+
+        .timeline-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-item.past .timeline-label {
+            color: #10b981;
+        }
+
+        .timeline-item.present .timeline-label {
+            color: #007AFF;
+        }
+
+        .timeline-item.future .timeline-label {
+            color: #f59e0b;
+        }
+
+        .timeline-content {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .timeline-timestamp {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .status-section {
+            margin-bottom: 1.5rem;
+        }
+
         .status-label {
             font-size: 0.9rem;
             color: #666;
             margin-bottom: 0.3rem;
             font-weight: 500;
         }
-        
+
         .status-value {
             font-size: 1.1rem;
             color: #333;
@@ -361,18 +447,64 @@
             </div>
             
             <div id="dev-status-content">
+                <!-- Timeline Section -->
+                <div class="timeline-section">
+                    <div class="timeline-title">⏰ 开发时间线</div>
+                    <div class="timeline">
+                        <!-- Past -->
+                        <div class="timeline-item past">
+                            <div class="timeline-label">过去</div>
+                            <div class="timeline-content">
+                                <div id="recent-commit" style="margin-bottom: 0.8rem;">
+                                    <strong>最新提交:</strong><br>
+                                    <span id="commit-message-short" style="font-size: 0.85rem;">加载中...</span>
+                                </div>
+                                <div id="recent-file">
+                                    <strong>最近修改:</strong><br>
+                                    <span id="file-name-short" style="font-size: 0.85rem;">加载中...</span>
+                                </div>
+                                <div class="timeline-timestamp" id="activity-timestamp">加载中...</div>
+                            </div>
+                        </div>
+
+                        <!-- Present -->
+                        <div class="timeline-item present">
+                            <div class="timeline-label">现在</div>
+                            <div class="timeline-content">
+                                <div id="current-activity-text" style="font-size: 1rem; font-weight: 600; color: #007AFF;">
+                                    加载中...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Future -->
+                        <div class="timeline-item future">
+                            <div class="timeline-label">未来</div>
+                            <div class="timeline-content">
+                                <div style="font-size: 0.85rem;">
+                                    <strong>下一步行动:</strong><br>
+                                    <ul id="next-actions-short" style="text-align: left; padding-left: 1rem; margin-top: 0.5rem;">
+                                        <li>加载中...</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Information -->
                 <div class="status-section">
                     <div class="status-label">项目状态</div>
                     <div class="status-value" id="project-status">加载中...</div>
                 </div>
-                
+
                 <div class="status-section">
                     <div class="status-label">当前模型</div>
                     <div class="status-value" id="current-model">加载中...</div>
                 </div>
-                
+
                 <div class="status-section">
-                    <div class="status-label">最近提交</div>
+                    <div class="status-label">最近提交详情</div>
                     <ul class="status-list">
                         <li><strong>提交:</strong> <span id="commit-hash">加载中...</span></li>
                         <li><strong>消息:</strong> <span id="commit-message">加载中...</span></li>
@@ -381,16 +513,16 @@
                         <li><strong>分支:</strong> <span id="commit-branch">加载中...</span></li>
                     </ul>
                 </div>
-                
+
                 <div class="status-section">
-                    <div class="status-label">最近修改文件</div>
+                    <div class="status-label">最近修改文件详情</div>
                     <ul class="status-list">
                         <li><strong>文件:</strong> <span id="file-name">加载中...</span></li>
                         <li><strong>路径:</strong> <span id="file-path">加载中...</span></li>
                         <li><strong>时间:</strong> <span id="file-time">加载中...</span> (<span id="file-time-ago">加载中...</span>)</li>
                     </ul>
                 </div>
-                
+
                 <div class="status-section">
                     <div class="status-label">Token 使用情况</div>
                     <ul class="status-list">
@@ -399,26 +531,26 @@
                         <li><strong>最后更新:</strong> <span id="token-last-update">加载中...</span></li>
                     </ul>
                 </div>
-                
+
                 <div class="status-section">
                     <div class="status-label">已实现功能</div>
                     <ul class="status-list" id="implemented-features">
                         <li>加载中...</li>
                     </ul>
                 </div>
-                
+
                 <div class="status-section">
                     <div class="status-label">计划实现功能</div>
                     <ul class="status-list" id="planned-features">
                         <li>加载中...</li>
                     </ul>
                 </div>
-                
+
                 <div class="status-section">
                     <div class="status-label">更新时间</div>
                     <div class="status-value" id="build-time">加载中...</div>
                 </div>
-                
+
                 <button class="refresh-btn" id="refresh-status">
                     <span class="loading-spinner" id="loading-spinner" style="display: none;"></span>
                     <span id="refresh-text">🔄 刷新状态</span>
@@ -521,31 +653,75 @@
         }
         
         function updateDevStatusDisplay(data) {
+            // Update timeline section (most important - top of display)
+            if (data.recentActivity) {
+                // Recent commit
+                if (data.recentActivity.lastCommit) {
+                    document.getElementById('commit-message-short').textContent = data.recentActivity.lastCommit.message || '未知';
+                }
+
+                // Recent file modification
+                if (data.recentActivity.lastFileMod) {
+                    document.getElementById('file-name-short').textContent = data.recentActivity.lastFileMod.filename || '未知';
+                }
+
+                // Activity timestamp
+                document.getElementById('activity-timestamp').textContent = data.recentActivity.timestamp || '未知';
+            }
+
+            // Current activity (Present)
+            document.getElementById('current-activity-text').textContent = data.currentActivity || '未知';
+
+            // Next actions (Future)
+            const nextActionsShort = document.getElementById('next-actions-short');
+            nextActionsShort.innerHTML = '';
+            if (data.nextActions && data.nextActions.length > 0) {
+                // Show only first 3 actions in timeline
+                data.nextActions.slice(0, 3).forEach(action => {
+                    const li = document.createElement('li');
+                    li.textContent = action;
+                    nextActionsShort.appendChild(li);
+                });
+                if (data.nextActions.length > 3) {
+                    const moreLi = document.createElement('li');
+                    moreLi.textContent = '... 还有 ' + (data.nextActions.length - 3) + ' 项';
+                    moreLi.style.fontStyle = 'italic';
+                    nextActionsShort.appendChild(moreLi);
+                }
+            } else {
+                nextActionsShort.innerHTML = '<li>暂无计划</li>';
+            }
+
+            // Update detailed information section
             // Update project status
             document.getElementById('project-status').textContent = data.projectStatus || '未知';
-            
+
             // Update current model
             document.getElementById('current-model').textContent = data.currentModel || '未知';
-            
+
             // Update commit info
-            document.getElementById('commit-hash').textContent = data.lastCommit.hash || '未知';
-            document.getElementById('commit-message').textContent = data.lastCommit.message || '未知';
-            document.getElementById('commit-author').textContent = data.lastCommit.author || '未知';
-            document.getElementById('commit-date').textContent = data.lastCommit.date || '未知';
-            document.getElementById('commit-time-ago').textContent = data.lastCommit.timeAgo || '未知';
-            document.getElementById('commit-branch').textContent = data.lastCommit.branch || '未知';
-            
+            if (data.recentActivity && data.recentActivity.lastCommit) {
+                document.getElementById('commit-hash').textContent = data.recentActivity.lastCommit.hash || '未知';
+                document.getElementById('commit-message').textContent = data.recentActivity.lastCommit.message || '未知';
+                document.getElementById('commit-author').textContent = data.recentActivity.lastCommit.author || '未知';
+                document.getElementById('commit-date').textContent = data.recentActivity.lastCommit.date || '未知';
+                document.getElementById('commit-time-ago').textContent = data.recentActivity.lastCommit.timeAgo || '未知';
+                document.getElementById('commit-branch').textContent = data.recentActivity.lastCommit.branch || '未知';
+            }
+
             // Update file modification info
-            document.getElementById('file-name').textContent = data.lastFileMod.filename || '未知';
-            document.getElementById('file-path').textContent = data.lastFileMod.path || '未知';
-            document.getElementById('file-time').textContent = data.lastFileMod.modifiedTime || '未知';
-            document.getElementById('file-time-ago').textContent = data.lastFileMod.timeAgo || '未知';
-            
+            if (data.recentActivity && data.recentActivity.lastFileMod) {
+                document.getElementById('file-name').textContent = data.recentActivity.lastFileMod.filename || '未知';
+                document.getElementById('file-path').textContent = data.recentActivity.lastFileMod.path || '未知';
+                document.getElementById('file-time').textContent = data.recentActivity.lastFileMod.modifiedTime || '未知';
+                document.getElementById('file-time-ago').textContent = data.recentActivity.lastFileMod.timeAgo || '未知';
+            }
+
             // Update token usage
             document.getElementById('total-tokens').textContent = data.tokenUsage.totalTokens.toLocaleString() || '0';
             document.getElementById('estimated-cost').textContent = data.tokenUsage.estimatedCost.toFixed(2) || '0.00';
             document.getElementById('token-last-update').textContent = data.tokenUsage.lastUpdate || '未知';
-            
+
             // Update implemented features
             const implementedList = document.getElementById('implemented-features');
             implementedList.innerHTML = '';
@@ -558,7 +734,7 @@
             } else {
                 implementedList.innerHTML = '<li>暂无已实现功能</li>';
             }
-            
+
             // Update planned features
             const plannedList = document.getElementById('planned-features');
             plannedList.innerHTML = '';
@@ -571,7 +747,7 @@
             } else {
                 plannedList.innerHTML = '<li>暂无计划功能</li>';
             }
-            
+
             // Update build time
             document.getElementById('build-time').textContent = data.buildTime || '未知';
         }

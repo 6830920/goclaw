@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -21,14 +22,22 @@ type DevStatusResponse struct {
 
 // DevStatusData contains the development status information
 type DevStatusData struct {
+	RecentActivity     RecentActivity `json:"recentActivity"`
+	CurrentActivity    string        `json:"currentActivity"`
+	NextActions        []string      `json:"nextActions"`
 	CurrentModel        string      `json:"currentModel"`
-	LastCommit         CommitInfo  `json:"lastCommit"`
-	LastFileMod        FileModInfo `json:"lastFileMod"`
 	TokenUsage         TokenUsage  `json:"tokenUsage"`
 	ImplementedFeatures []string    `json:"implementedFeatures"`
 	PlannedFeatures    []string    `json:"plannedFeatures"`
 	ProjectStatus      string      `json:"projectStatus"`
 	BuildTime          string      `json:"buildTime"`
+}
+
+// RecentActivity contains recent development activity
+type RecentActivity struct {
+	LastCommit  CommitInfo  `json:"lastCommit"`
+	LastFileMod FileModInfo `json:"lastFileMod"`
+	Timestamp   string      `json:"timestamp"`
 }
 
 // CommitInfo contains git commit information
@@ -79,14 +88,21 @@ func handleDevStatus() http.HandlerFunc {
 func gatherDevStatus() DevStatusData {
 	data := DevStatusData{}
 
+	// Get recent activity (commit + file mod)
+	data.RecentActivity = RecentActivity{
+		LastCommit:  getGitCommitInfo(),
+		LastFileMod: getLastFileModification(),
+		Timestamp:   time.Now().Format("2006-01-02 15:04:05"),
+	}
+
+	// Get current activity
+	data.CurrentActivity = getCurrentActivity()
+
+	// Get next actions
+	data.NextActions = getNextActions()
+
 	// Get current model information
 	data.CurrentModel = getCurrentModel()
-
-	// Get git commit information
-	data.LastCommit = getGitCommitInfo()
-
-	// Get last file modification
-	data.LastFileMod = getLastFileModification()
 
 	// Get token usage information
 	data.TokenUsage = getTokenUsage()
@@ -221,6 +237,61 @@ func getTokenUsage() TokenUsage {
 	}
 
 	return usage
+}
+
+// getCurrentActivity returns what the AI is currently working on
+func getCurrentActivity() string {
+	// Read current tasks to determine activity
+	tasksFile := filepath.Join(os.Getenv("HOME"), ".openclaw", "workspace", "goclaw_tasks.json")
+	if _, err := os.Stat(tasksFile); err == nil {
+		content, err := ioutil.ReadFile(tasksFile)
+		if err == nil {
+			var tasks map[string]interface{}
+			if err := json.Unmarshal(content, &tasks); err == nil {
+				if nextActions, ok := tasks["nextActions"].([]interface{}); ok && len(nextActions) > 0 {
+					// Return first next action as current activity
+					if firstAction, ok := nextActions[0].(string); ok {
+						return "🔧 正在开发：" + firstAction
+					}
+				}
+			}
+		}
+	}
+	
+	return "🔧 正在开发Goclaw项目"
+}
+
+// getNextActions returns list of next development actions
+func getNextActions() []string {
+	actions := []string{
+		"实现会话管理系统",
+		"完善安全模型",
+		"构建工具系统基础框架",
+		"开发技能系统",
+	}
+	
+	// Read from goclaw_tasks.json for accurate next actions
+	tasksFile := filepath.Join(os.Getenv("HOME"), ".openclaw", "workspace", "goclaw_tasks.json")
+	if _, err := os.Stat(tasksFile); err == nil {
+		content, err := ioutil.ReadFile(tasksFile)
+		if err == nil {
+			var tasks map[string]interface{}
+			if err := json.Unmarshal(content, &tasks); err == nil {
+				if nextActions, ok := tasks["nextActions"].([]interface{}); ok {
+					actions = []string{}
+					for _, action := range nextActions {
+						if actionStr, ok := action.(string); ok {
+							// Remove quotes from string
+							actionStr = strings.Trim(actionStr, `"`)
+							actions = append(actions, actionStr)
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return actions
 }
 
 // getFeatures returns implemented and planned features
