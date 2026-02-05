@@ -99,9 +99,10 @@ internal/tools/
 
 ## 开发状态
 - [x] 核心数据结构设计
-- [ ] ToolRegistry实现
-- [ ] ToolExecutor实现
-- [ ] 内置工具实现
-- [ ] AI集成
-- [ ] 测试完善
-- [ ] 文档编写
+- [x] ToolRegistry实现
+- [x] ToolExecutor实现
+- [x] 内置工具实现
+- [x] AI集成（部分）
+- [x] 测试完善
+- [x] 文档编写
+- [ ] 项目已停止开发（2026-02-04）

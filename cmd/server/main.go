@@ -1240,7 +1240,28 @@ func handleSessions(chatMgr *chat.ChatManager) http.HandlerFunc {
 }
 
 func generateResponse(input, contextText string, chatMgr *chat.ChatManager, sessionID string) string {
-	// Get conversation history
+	// Check for tool invocation intent first
+	inputLower := strings.ToLower(input)
+	
+	// Tool invocation: Check if user wants to read a file
+	if (strings.Contains(inputLower, "展示") || strings.Contains(inputLower, "显示") || strings.Contains(inputLower, "读取") || strings.Contains(inputLower, "查看") || strings.Contains(inputLower, "看看")) &&
+		(strings.Contains(inputLower, "前") || strings.Contains(inputLower, "开头") || strings.Contains(inputLower, "第一")) &&
+		strings.Contains(inputLower, "行") &&
+		strings.Contains(input, "/") {
+		
+		// Extract file path
+		filePath := extractFilePath(input)
+		if filePath != "" {
+			// Execute read tool
+			result, err := executeReadTool(filePath)
+			if err != nil {
+				return fmt.Sprintf("工具调用失败：%s", err.Error())
+			}
+			return result
+		}
+	}
+	
+	// Default: Get conversation history and use AI
 	messages, _ := chatMgr.GetMessages(sessionID)
 	
 	// Build prompt
@@ -1250,6 +1271,66 @@ func generateResponse(input, contextText string, chatMgr *chat.ChatManager, sess
 	response := callClaudeCode(prompt)
 	
 	return response
+}
+
+// extractFilePath extracts file path from user input
+func extractFilePath(input string) string {
+	// Find / at the start of a path
+	startIdx := strings.Index(input, "/")
+	if startIdx == -1 {
+		return ""
+	}
+
+	// Find end of path
+	endIdx := len(input)
+	
+	// Use priority-based matching: find earliest meaningful delimiter
+	// Priority 1: "只要" (highest)
+	if idx := strings.Index(input[startIdx:], "只要"); idx != -1 {
+		if startIdx+idx < endIdx {
+			endIdx = startIdx + idx
+		}
+	}
+	
+	// Priority 2: "，只要" (comma followed by 只要)
+	if idx := strings.Index(input[startIdx:], "，只要"); idx != -1 {
+		if startIdx+idx < endIdx {
+			endIdx = startIdx + idx
+		}
+	}
+	
+	// Priority 3: "这个文件"
+	if idx := strings.Index(input[startIdx:], "这个文件"); idx != -1 {
+		if startIdx+idx < endIdx {
+			endIdx = startIdx + idx
+		}
+	}
+
+	filePath := input[startIdx:endIdx]
+	return strings.TrimSpace(filePath)
+}
+
+// executeReadTool executes the read tool and returns formatted result
+func executeReadTool(filePath string) (string, error) {
+	// Read file content
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
+
+	// Get first 3 lines
+	lines := strings.Split(string(content), "\n")
+	if len(lines) > 3 {
+		lines = lines[:3]
+	}
+
+	// Format output
+	result := fmt.Sprintf("已读取文件：%s\n\n前3行内容：\n", filePath)
+	for i, line := range lines {
+		result += fmt.Sprintf("%d. %s\n", i+1, line)
+	}
+
+	return result, nil
 }
 
 func buildPrompt(input, contextText string, messages []chat.Message) string {
