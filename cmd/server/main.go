@@ -1299,7 +1299,14 @@ func extractFilePath(input string) string {
 		}
 	}
 	
-	// Priority 3: "这个文件"
+	// Priority 3: "的前" (e.g., "文件的前3行")
+	if idx := strings.Index(input[startIdx:], "的前"); idx != -1 {
+		if startIdx+idx < endIdx {
+			endIdx = startIdx + idx
+		}
+	}
+	
+	// Priority 4: "这个文件"
 	if idx := strings.Index(input[startIdx:], "这个文件"); idx != -1 {
 		if startIdx+idx < endIdx {
 			endIdx = startIdx + idx
