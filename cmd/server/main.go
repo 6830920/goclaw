@@ -1118,11 +1118,18 @@ func handleChat(embedder vector.Embedder, memStore *memory.MemoryStore, chatMgr 
 		sessionID := req.SessionID
 		if sessionID == "" {
 			sessionID = fmt.Sprintf("api_session_%d", time.Now().Unix())
+		}
+
+		// Ensure session exists (in case sessionID was provided but doesn't exist)
+		if _, exists := chatMgr.GetSession(sessionID); !exists {
 			chatMgr.CreateSession(sessionID, cfg.Agent.Model)
 		}
 
 		// Add user message
-		chatMgr.AddMessage(sessionID, "user", req.Message)
+		if err := chatMgr.AddMessage(sessionID, "user", req.Message); err != nil {
+			// Log error but continue
+			fmt.Printf("Error adding message to session %s: %v\n", sessionID, err)
+		}
 
 		// Get context from memory
 		var contextText string
