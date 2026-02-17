@@ -162,6 +162,7 @@ func (ts *TestSuite) extractLineCount(input string) int {
 }
 
 // extractFilePath extracts file path from user input
+// extractFilePath extracts file path from user input
 func (ts *TestSuite) extractFilePath(input string) string {
 	// 查找 / 开头的路径
 	startIdx := strings.Index(input, "/")
@@ -169,89 +170,62 @@ func (ts *TestSuite) extractFilePath(input string) string {
 		return ""
 	}
 
-	// 从起始位置开始寻找路径结束位置
-	endIdx := len(input)
-	
-	// 查找所有可能的结束位置，并选择最早的
-	possibleEnds := []int{}
-	
-	// 高优先级：明确的结束标志
-	// 查找 "只要" (例如 "...只要前三行")
-	if idx := strings.Index(input[startIdx:], "只要"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
-	}
-	
-	// 查找 "，只要" (例如 "...，只要前三行")
-	if idx := strings.Index(input[startIdx:], "，只要"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
-	}
-	
-	// 中等优先级：特定模式 - 更精确地匹配
-	// 查找包含"文件"的模式
-	if idx := strings.Index(input[startIdx:], "文件的前"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
-	}
-	
-	if idx := strings.Index(input[startIdx:], "文件的开头几行"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
-	}
-	
-	if idx := strings.Index(input[startIdx:], "文件的第一部分"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
-	}
-	
+	// 高优先级：特定模式，按优先级排序
+	// 1. "这个文件" 模式 (最高优先级)
 	if idx := strings.Index(input[startIdx:], "这个文件"); idx != -1 {
-		possibleEnds = append(possibleEnds, startIdx+idx)
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
 	}
 	
-	// 查找通用模式，但要小心避免扩展名误匹配
-	// 查找 "的" + 数字 + "行" 模式（但要确保不是在文件名扩展中）
-	remaining := input[startIdx:]
-	for i := 0; i < len(remaining)-5; i++ {
-		if remaining[i:i+1] == "的" {
-			// 检查后面是否有数字和"行"
-			afterOf := remaining[i+1:]
-			if len(afterOf) >= 2 {
-				// 检查第一个字符是否是数字
-				firstChar := afterOf[0:1]
-				if firstChar >= "0" && firstChar <= "9" {
-					// 检查是否包含"行"
-					if strings.Contains(afterOf, "行") {
-						// 检查是否可能在路径扩展名中（如".txt的"）
-						// 如果"的"前是字母数字，则可能是在扩展名中
-						if i > 0 {
-							prevChar := remaining[i-1:i]
-							// 如果前一个字符是"."，那么很可能是路径扩展名
-							if prevChar == "." {
-								// 这是典型的路径结束标志，如 "path.txt的前3行"
-								possibleEnds = append(possibleEnds, startIdx+i) // 在"的"处结束
-							}
-						}
-					}
-				}
+	// 2. "文件的前" 模式 (在"文件"处结束)
+	if idx := strings.Index(input[startIdx:], "文件的前"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 3. "文件的开头几行" 模式 (在"文件"处结束)
+	if idx := strings.Index(input[startIdx:], "文件的开头几行"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 4. "文件的第一部分" 模式 (在"文件"处结束)
+	if idx := strings.Index(input[startIdx:], "文件的第一部分"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 5. "，只要" 模式
+	if idx := strings.Index(input[startIdx:], "，只要"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 6. "只要" 模式
+	if idx := strings.Index(input[startIdx:], "只要"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 7. "的开头几行" 模式
+	if idx := strings.Index(input[startIdx:], "的开头几行"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 8. "的前" 模式（在文件扩展名后）
+	if idx := strings.Index(input[startIdx:], "的前"); idx != -1 {
+		// 检查是否在文件扩展名后
+		pathPart := input[startIdx : startIdx+idx]
+		// 查找文件扩展名
+		for i := len(pathPart) - 1; i >= 0; i-- {
+			if pathPart[i] == '/' {
+				// 路径分隔符，返回完整路径
+				return strings.TrimSpace(pathPart)
+			}
+			if pathPart[i] == '.' && i+2 < len(pathPart) {
+				// 文件扩展名，返回完整路径
+				return strings.TrimSpace(pathPart)
 			}
 		}
 	}
-	
-	// 句子结束符（较低优先级）
-	for i := startIdx; i < len(input); i++ {
-		if input[i:i+1] == "。" || input[i:i+1] == "." {
-			possibleEnds = append(possibleEnds, i)
-			break
-		}
-	}
-	
-	// 选择最早出现的结束位置
-	for _, pos := range possibleEnds {
-		if pos > startIdx && pos < endIdx { // 确保有效位置
-			endIdx = pos
-		}
-	}
 
-	filePath := input[startIdx:endIdx]
-	return strings.TrimSpace(filePath)
+	// 默认：返回从 / 开始到结束
+	return strings.TrimSpace(input[startIdx:])
 }
-
 // executeToolAndFormatResult executes a tool and formats the result
 func (ts *TestSuite) executeToolAndFormatResult(filePath string, lineCount int) string {
 	// 创建执行器

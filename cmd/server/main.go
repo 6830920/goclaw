@@ -1288,40 +1288,61 @@ func extractFilePath(input string) string {
 		return ""
 	}
 
-	// Find end of path
-	endIdx := len(input)
-	
-	// Use priority-based matching: find earliest meaningful delimiter
-	// Priority 1: "只要" (highest)
-	if idx := strings.Index(input[startIdx:], "只要"); idx != -1 {
-		if startIdx+idx < endIdx {
-			endIdx = startIdx + idx
-		}
-	}
-	
-	// Priority 2: "，只要" (comma followed by 只要)
-	if idx := strings.Index(input[startIdx:], "，只要"); idx != -1 {
-		if startIdx+idx < endIdx {
-			endIdx = startIdx + idx
-		}
-	}
-	
-	// Priority 3: "的前" (e.g., "文件的前3行")
-	if idx := strings.Index(input[startIdx:], "的前"); idx != -1 {
-		if startIdx+idx < endIdx {
-			endIdx = startIdx + idx
-		}
-	}
-	
-	// Priority 4: "这个文件"
+	// High priority: Specific patterns, ordered by priority
+	// 1. "这个文件" pattern (highest priority)
 	if idx := strings.Index(input[startIdx:], "这个文件"); idx != -1 {
-		if startIdx+idx < endIdx {
-			endIdx = startIdx + idx
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 2. "文件的前" pattern (end at "文件")
+	if idx := strings.Index(input[startIdx:], "文件的前"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 3. "文件的开头几行" pattern (end at "文件")
+	if idx := strings.Index(input[startIdx:], "文件的开头几行"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 4. "文件的第一部分" pattern (end at "文件")
+	if idx := strings.Index(input[startIdx:], "文件的第一部分"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 5. "，只要" pattern
+	if idx := strings.Index(input[startIdx:], "，只要"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 6. "只要" pattern
+	if idx := strings.Index(input[startIdx:], "只要"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 7. "的开头几行" pattern
+	if idx := strings.Index(input[startIdx:], "的开头几行"); idx != -1 {
+		return strings.TrimSpace(input[startIdx : startIdx+idx])
+	}
+	
+	// 8. "的前" pattern (after file extension)
+	if idx := strings.Index(input[startIdx:], "的前"); idx != -1 {
+		// Check if after file extension
+		pathPart := input[startIdx : startIdx+idx]
+		// Look for file extension
+		for i := len(pathPart) - 1; i >= 0; i-- {
+			if pathPart[i] == '/' {
+				// Path separator, return full path
+				return strings.TrimSpace(pathPart)
+			}
+			if pathPart[i] == '.' && i+2 < len(pathPart) {
+				// File extension, return full path
+				return strings.TrimSpace(pathPart)
+			}
 		}
 	}
 
-	filePath := input[startIdx:endIdx]
-	return strings.TrimSpace(filePath)
+	// Default: return from / to end
+	return strings.TrimSpace(input[startIdx:])
 }
 
 // executeReadTool executes the read tool and returns formatted result
